@@ -1,8 +1,9 @@
 // ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:unihack24_vanjo/screens/home_screen.dart';
 import '../services/auth_service.dart';
-import 'profile_screen.dart';
 import 'signup_screen.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -31,9 +32,11 @@ class _SignInScreenState extends State<SignInScreen> {
     try {
       final user = await _authService.signInWithEmail(email, password);
       if (user != null) {
-        // Navigate to main page if sign-in is successful
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isLoggedIn', true);
+
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => ProfileScreen()),
+          MaterialPageRoute(builder: (context) => HomeScreen()),
         );
       } else {
         setState(() {

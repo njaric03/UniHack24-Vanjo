@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:unihack24_vanjo/screens/signin_screen.dart';
+import 'package:unihack24_vanjo/theme/strings.dart';
+import 'screens/splash_screen.dart';
 import 'config/firebase_options.dart';
 import 'theme/app_theme.dart';
 
@@ -18,9 +19,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'SkillCycle',
+      title: appName,
       theme: AppTheme.themeData,
-      home: SignInScreen(),
+      home: SplashScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
