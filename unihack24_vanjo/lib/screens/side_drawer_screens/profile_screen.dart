@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:unihack24_vanjo/models/user.dart';
 
-import '../models/review.dart';
+import '../../models/review.dart';
 
 class ProfileScreen extends StatelessWidget {
   final SkillCycleUser user;

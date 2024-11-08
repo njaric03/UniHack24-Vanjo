@@ -2,52 +2,55 @@
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:unihack24_vanjo/models/user.dart';
-import 'package:unihack24_vanjo/screens/home_screen.dart';
-import '../services/auth_service.dart';
-import '../theme/app_theme.dart';
+import 'package:unihack24_vanjo/screens/utility_screens/home_screen.dart';
+import '../../services/auth_service.dart';
+import 'signup_screen.dart';
 
-class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({super.key});
+class SignInScreen extends StatefulWidget {
+  const SignInScreen({super.key});
 
   @override
-  _SignUpScreenState createState() => _SignUpScreenState();
+  _SignInScreenState createState() => _SignInScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
-  final _nameController = TextEditingController();
+class _SignInScreenState extends State<SignInScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
   bool _isLoading = false;
   String? _errorMessage;
 
-  Future<void> _signUp() async {
+  Future<void> _signIn() async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
-    _nameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
     try {
-      final user = await _authService.registerWithEmail(
-          email, password, SkillCycleUser());
+      final user = await _authService.signInWithEmail(email, password);
       if (user != null) {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setBool('isLoggedIn', true);
+        await prefs.clear();
         await prefs.setString('userID', user.uid); // Save the userID (uid)
 
-        // Navigate to main page
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => HomeScreen(pageName: '',)),
+          MaterialPageRoute(
+              builder: (context) => HomeScreen(
+                    pageName: '',
+                  )),
         );
+      } else {
+        setState(() {
+          _errorMessage = "Invalid email or password.";
+        });
       }
     } catch (e) {
       setState(() {
-        _errorMessage = "Error signing up. Please try again.";
+        _errorMessage = "Error signing in. Please try again.";
       });
     } finally {
       setState(() {
@@ -60,41 +63,45 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Sign Up', style: AppTheme.headline1),
+        title: Text('Sign In'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Create your account', style: AppTheme.headline1),
-            SizedBox(height: 16),
             if (_errorMessage != null)
               Text(
                 _errorMessage!,
                 style: TextStyle(color: Colors.red),
               ),
             TextField(
-              controller: _nameController,
-              decoration: InputDecoration(labelText: 'Name'),
-            ),
-            TextField(
               controller: _emailController,
               decoration: InputDecoration(labelText: 'Email'),
               keyboardType: TextInputType.emailAddress,
             ),
+            SizedBox(height: 10),
             TextField(
               controller: _passwordController,
               decoration: InputDecoration(labelText: 'Password'),
               obscureText: true,
             ),
-            SizedBox(height: 24),
+            SizedBox(height: 20),
             _isLoading
-                ? Center(child: CircularProgressIndicator())
+                ? CircularProgressIndicator()
                 : ElevatedButton(
-                    onPressed: _signUp,
-                    child: Text('Sign Up'),
+                    onPressed: _signIn,
+                    child: Text('Sign In'),
                   ),
+            SizedBox(height: 10),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => SignUpScreen()),
+                );
+              },
+              child: Text('Don\'t have an account? Sign Up'),
+            ),
           ],
         ),
       ),
@@ -103,7 +110,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   void dispose() {
-    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();

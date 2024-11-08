@@ -3,16 +3,18 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:unihack24_vanjo/models/user.dart';
-import 'package:unihack24_vanjo/screens/profile_screen.dart';
+import 'package:unihack24_vanjo/screens/side_drawer_screens/profile_screen.dart';
 import 'package:unihack24_vanjo/theme/app_theme.dart';
 import 'package:unihack24_vanjo/widgets/side_drawer.dart';
 
-import 'alerts_screen.dart';
-import 'find_screen.dart';
-import 'messages_screen.dart';
+import '/screens/bottom_nav_bar_screens/alerts_screen.dart';
+import '/screens/bottom_nav_bar_screens/find_screen.dart';
+import '/screens/bottom_nav_bar_screens/all_chats_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required String pageName});
+  const HomeScreen({super.key, required this.pageName});
+
+  final String pageName;
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -44,7 +46,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final List<Widget> pages = [
       FindScreen(),
-      ProfileScreen(user: currentUser!),
+      if (currentUser != null)
+        ProfileScreen(user: currentUser!)
+      else
+        Container(),
       MessagesScreen(),
       AlertsScreen()
     ];
@@ -79,32 +84,38 @@ class _HomeScreenState extends State<HomeScreen> {
               index: _selectedIndex,
               children: pages,
             ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'Find',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.message),
-            label: 'Messages',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
-            label: 'Alerts',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor:
-            AppTheme.primaryColor, // Customize selected item color
-        unselectedItemColor: Colors.grey, // Customize unselected item color
-        backgroundColor: AppTheme.backgroundColor,
-        showUnselectedLabels: true, // Customize background color
-        onTap: onItemTapped,
+      bottomNavigationBar: Theme(
+        data: Theme.of(context).copyWith(
+          // Customize the text style for selected and unselected items
+          bottomNavigationBarTheme: BottomNavigationBarThemeData(
+              selectedItemColor: AppTheme.primaryColor,
+              unselectedItemColor: Colors.grey,
+              selectedLabelStyle: TextStyle(color: AppTheme.primaryColor),
+              unselectedLabelStyle: TextStyle(color: Colors.grey),
+              showUnselectedLabels: true),
+        ),
+        child: BottomNavigationBar(
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.search),
+              label: 'Find',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.message),
+              label: 'Messages',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.notifications),
+              label: 'Alerts',
+            ),
+          ],
+          currentIndex: _selectedIndex,
+          onTap: onItemTapped,
+        ),
       ),
     );
   }
