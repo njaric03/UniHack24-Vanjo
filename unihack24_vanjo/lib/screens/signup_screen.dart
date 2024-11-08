@@ -1,8 +1,9 @@
 // ignore_for_file: library_private_types_in_public_api
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:unihack24_vanjo/models/user.dart';
-import 'package:unihack24_vanjo/screens/profile_screen.dart';
+import 'package:unihack24_vanjo/screens/home_screen.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 
@@ -27,18 +28,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
       _errorMessage = null;
     });
 
-    final name = _nameController.text.trim();
+    _nameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
     try {
       final user = await _authService.registerWithEmail(
-          email, password, SkillCycleUser(name: name));
+          email, password, SkillCycleUser());
       if (user != null) {
-        // Add user details to Firestore if needed, e.g., saving the user's name
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isLoggedIn', true);
+        await prefs.setString('userID', user.uid); // Save the userID (uid)
+
         // Navigate to main page
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => ProfileScreen()),
+          MaterialPageRoute(builder: (context) => HomeScreen()),
         );
       }
     } catch (e) {
