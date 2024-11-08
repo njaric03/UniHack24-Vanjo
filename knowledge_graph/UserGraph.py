@@ -2,8 +2,7 @@ from typing import Any, Dict, Optional, List
 import networkx as nx
 import pandas as pd
 from numpy import nan
-from networkx.algorithms.cycles import cycle_basis
-
+import matplotlib.pyplot as plt
 
 class UserGraph:
     def __init__(self) -> None:
@@ -22,6 +21,9 @@ class UserGraph:
                                'learning_subject', and 'rating_avg'.
         """
         # Add the user as a node in the graph, including all attributes in the `attributes` dictionary
+        if user_id in self.graph.nodes.keys():
+            return
+
         self.graph.add_node(user_id, **attributes)
 
         # If the user has a non-NaN 'teaching_subject', create edges for matching 'learning_subject' nodes
@@ -75,8 +77,10 @@ class UserGraph:
             if user_id in x:
                 sum_of_weights = sum([self.graph.nodes(data=True)[y].get('rating_avg_teacher') for y in x])
                 lst.append((x, sum_of_weights))
+        lst = sorted(lst, key= lambda x: (len(x[0]), -x[1]))
 
-        lst = sorted(lst, key=lambda x: (len(x), -x[1]))
+        if len(lst) == 0:
+            return None
 
         return lst[0][0]
 
@@ -108,4 +112,20 @@ class UserGraph:
         self.graph = G
 
 
+    def draw_cycle(self, user_id : int):
+        plt.figure(figsize=(10, 5))
+
+        cycle_nodes = self.find_best_cycle(user_id)
+
+        if cycle_nodes is None:
+            return
+
+        sG = self.graph.subgraph(cycle_nodes)
+        pos = nx.planar_layout(sG)
+        nx.draw(sG, with_labels=True, pos=pos)
+        edge_labels = {(u, v): f"Subject: {d['subject']}, Rating: {d['rating_avg_teacher']}"
+                       for u, v, d in sG.edges(data=True)}
+
+        nx.draw_networkx_edge_labels(sG, pos=pos, edge_labels=edge_labels, connectionstyle='arc3,rad=0.1')
+        plt.show()
 
