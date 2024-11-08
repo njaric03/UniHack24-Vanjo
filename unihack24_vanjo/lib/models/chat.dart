@@ -1,27 +1,30 @@
-import 'message.dart';
+import 'package:unihack24_vanjo/models/message.dart';
 
 class Chat {
-  String chatId;
-  List<Message> messages;
+  List<Message> messages; // This will now hold only the most recent messages
+  String participant1;
+  String participant2;
 
   Chat({
-    required this.chatId,
     required this.messages,
+    required this.participant1,
+    required this.participant2,
+    required String chatId,
   });
 
-  factory Chat.fromMap(Map<String, dynamic> map) {
+  factory Chat.fromMap(String id, Map<String, dynamic> map) {
     return Chat(
-      chatId: map['chatId'],
-      messages: (map['messages'] as List<dynamic>)
-          .map((message) => Message.fromMap(message as Map<String, dynamic>))
-          .toList(),
+      messages: [],
+      participant1: map['participant1'],
+      participant2: map['participant2'],
+      chatId: id,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'chatId': chatId,
-      'messages': messages.map((message) => message.toMap()).toList(),
+      'participant1': participant1,
+      'participant2': participant2,
     };
   }
 }

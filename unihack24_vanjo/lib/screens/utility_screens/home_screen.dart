@@ -23,6 +23,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   SkillCycleUser? currentUser;
+  String? userID;
 
   @override
   void initState() {
@@ -32,12 +33,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadCurrentUser() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? userID = prefs.getString('userID');
+    String? loadedUserID = prefs.getString('userID');
 
-    if (userID != null) {
-      SkillCycleUser? user = await SkillCycleUser.getUserById(userID);
+    if (loadedUserID != null) {
+      SkillCycleUser? user = await SkillCycleUser.getUserById(loadedUserID);
       setState(() {
         currentUser = user;
+        userID = loadedUserID; // Store the userID
       });
     }
   }
@@ -50,7 +52,12 @@ class _HomeScreenState extends State<HomeScreen> {
         ProfileScreen(user: currentUser!)
       else
         Container(),
-      MessagesScreen(),
+      if (userID != null)
+        AllChatsScreen(
+          userId: userID!,
+        )
+      else
+        Container(),
       AlertsScreen()
     ];
 
