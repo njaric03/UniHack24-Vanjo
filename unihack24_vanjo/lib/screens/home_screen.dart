@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:unihack24_vanjo/theme/strings.dart';
+import 'package:unihack24_vanjo/widgets/side_drawer.dart';
 import 'cycle_overview_screen.dart';
 import 'profile_screen.dart';
 import '../theme/app_theme.dart';
@@ -29,8 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final double drawerWidth =
-        MediaQuery.of(context).size.width * 0.66; // 2/3 of the screen width
+    final double drawerWidth = MediaQuery.of(context).size.width * 0.66;
 
     return Scaffold(
       appBar: AppBar(
@@ -39,45 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
           style: AppTheme.headline1,
         ),
       ),
-      drawer: Drawer(
-        width: drawerWidth,
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
-              ),
-              child: Text(
-                'Menu',
-                style: AppTheme.headline1,
-              ),
-            ),
-            ListTile(
-              leading: Icon(Icons.settings),
-              title: Text('Settings', style: AppTheme.bodyText1),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.help),
-              title: Text('Help', style: AppTheme.bodyText1),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.info),
-              title: Text('About', style: AppTheme.bodyText1),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            // Add more items as needed
-          ],
-        ),
-      ),
+      drawer: SideDrawer(drawerWidth: drawerWidth),
       body: IndexedStack(
         index: _selectedIndex,
         children: _pages,
