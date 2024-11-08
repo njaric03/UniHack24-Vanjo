@@ -38,7 +38,10 @@ class _SignInScreenState extends State<SignInScreen> {
         await prefs.setString('userID', user.uid); // Save the userID (uid)
 
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => HomeScreen()),
+          MaterialPageRoute(
+              builder: (context) => HomeScreen(
+                    pageName: '',
+                  )),
         );
       } else {
         setState(() {

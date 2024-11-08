@@ -1,15 +1,16 @@
-// ignore_for_file: library_private_types_in_public_api
-
 import 'package:flutter/material.dart';
 import 'package:unihack24_vanjo/theme/app_theme.dart';
+import 'package:unihack24_vanjo/models/user.dart';
 
 class SideDrawer extends StatelessWidget {
   const SideDrawer({
     super.key,
     required this.drawerWidth,
+    required this.user,
   });
 
   final double drawerWidth;
+  final SkillCycleUser user;
 
   @override
   Widget build(BuildContext context) {
@@ -22,9 +23,16 @@ class SideDrawer extends StatelessWidget {
             decoration: BoxDecoration(
               color: Theme.of(context).primaryColor,
             ),
-            child: Text(
-              'Menu',
-              style: AppTheme.headline1,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '${user.firstName} ${user.lastName}', // Display user's full name
+                  style: AppTheme.headline1.copyWith(color: Colors.white),
+                ),
+                SizedBox(height: 8),
+              ],
             ),
           ),
           ListTile(

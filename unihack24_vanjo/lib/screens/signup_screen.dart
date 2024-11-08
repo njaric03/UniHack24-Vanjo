@@ -42,7 +42,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
         // Navigate to main page
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => HomeScreen()),
+          MaterialPageRoute(builder: (context) => HomeScreen(pageName: '',)),
         );
       }
     } catch (e) {
