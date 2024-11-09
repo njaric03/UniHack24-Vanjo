@@ -136,7 +136,7 @@ class UserGraph:
         color_map = {subject: f'#{random.randint(0, 0xFFFFFF):06x}' for subject in teaching_subjects}
 
         # Create the plot
-        plt.figure(figsize=(10, 7))
+        plt.figure(figsize=(17, 17))
         edge_labels = {(u, v): f"{d['subject']} ({d['rating_avg_teacher']})"
                        for u, v, d in G.edges(data=True)}
 
@@ -158,21 +158,22 @@ class UserGraph:
                 arrowstyle=arrowstyle,
                 arrowsize=arrowsize,
                 edge_color=edge_color,
-                min_target_margin=20,
+                min_target_margin=100,
                 connectionstyle=connection_style
             )
             nx.draw_networkx_edge_labels(
                 G, pos,
                 edge_labels=edge_labels,
                 connectionstyle=connection_style,
-                font_family='monospace'
+                font_family='monospace',
+                font_size=40
             )
 
         # Add avatar images at each node position
         ax = plt.gca()
         for node, (x, y) in pos.items():
             img = np.array(self.images[avatar_ids[node]])
-            imagebox = OffsetImage(img, zoom=0.04)
+            imagebox = OffsetImage(img, zoom=0.2)
             ab = AnnotationBbox(imagebox, (x, y), frameon=False)
             ax.add_artist(ab)
 
@@ -182,6 +183,7 @@ class UserGraph:
         image_io.seek(0)  # Reset pointer to start of stream
 
         plt.axis('off')
+        plt.show()
         plt.close()
 
         # Return the cycle nodes and the image as bytes
