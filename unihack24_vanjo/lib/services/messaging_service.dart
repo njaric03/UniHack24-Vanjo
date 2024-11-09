@@ -33,7 +33,6 @@ class MessagingService {
     });
   }
 
-  // Corrected Method to get user chats stream using Filter.or with two arguments
   Stream<QuerySnapshot> getUserChatsStream(String userId) {
     return _firestore
         .collection('chats')

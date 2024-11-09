@@ -15,9 +15,6 @@ class AllChatsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chats'),
-      ),
       body: StreamBuilder<QuerySnapshot>(
         stream: messagingService.getUserChatsStream(userId),
         builder: (context, snapshot) {
@@ -62,7 +59,7 @@ class AllChatsScreen extends StatelessWidget {
                   return FutureBuilder<String>(
                     future: _getParticipantName(otherParticipantId),
                     builder: (context, namesSnapshot) {
-                      final displayName = namesSnapshot.data ?? 'Loading...';
+                      final username = namesSnapshot.data ?? 'Loading...';
 
                       return Dismissible(
                         key: Key(chatDoc.id),
@@ -80,7 +77,7 @@ class AllChatsScreen extends StatelessWidget {
                               return AlertDialog(
                                 title: const Text("Confirm"),
                                 content: Text(
-                                    "Are you sure you want to delete chat with $displayName?"),
+                                    "Are you sure you want to delete chat with $username?"),
                                 actions: <Widget>[
                                   TextButton(
                                     onPressed: () =>
@@ -104,13 +101,13 @@ class AllChatsScreen extends StatelessWidget {
                           leading: CircleAvatar(
                             backgroundColor: Theme.of(context).primaryColor,
                             child: Text(
-                              displayName.isNotEmpty
-                                  ? displayName[0].toUpperCase()
+                              username.isNotEmpty
+                                  ? username[0].toUpperCase()
                                   : '?',
                               style: const TextStyle(color: Colors.white),
                             ),
                           ),
-                          title: Text(displayName),
+                          title: Text(username),
                           subtitle: Row(
                             children: [
                               Expanded(
@@ -166,8 +163,8 @@ class AllChatsScreen extends StatelessWidget {
       final userDoc =
           await _firestore.collection('users').doc(participantId).get();
       final userData = userDoc.data();
-      if (userData != null && userData.containsKey('displayName')) {
-        return userData['displayName'];
+      if (userData != null && userData.containsKey('username')) {
+        return userData['username'];
       }
       return participantId;
     } catch (e) {
@@ -219,7 +216,7 @@ class AllChatsScreen extends StatelessWidget {
                 final userData = usersSnapshot.docs[index].data();
                 final otherUserId = usersSnapshot.docs[index].id;
                 return ListTile(
-                  title: Text(userData['displayName'] ?? 'Unknown User'),
+                  title: Text(userData['username'] ?? 'Unknown User'),
                   onTap: () async {
                     final chatId =
                         await messagingService.createChat(userId, otherUserId);
