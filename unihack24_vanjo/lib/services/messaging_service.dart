@@ -7,7 +7,6 @@ import '../models/chat.dart';
 
 class MessagingService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
   // Send notification method
@@ -50,6 +49,7 @@ class MessagingService {
       DocumentReference chatRef = await _firestore.collection('chats').add({
         'participants': [participant1, participant2],
         'createdAt': FieldValue.serverTimestamp(),
+        'lastUpdated': FieldValue.serverTimestamp(),
       });
 
       return chatRef.id;
@@ -64,7 +64,7 @@ class MessagingService {
     return _firestore
         .collection('chats')
         .where('participants', arrayContains: userId)
-        .orderBy('createdAt', descending: true)
+        .orderBy('lastUpdated', descending: true)
         .snapshots()
         .map((snapshot) {
       print('Found ${snapshot.docs.length} chats'); // Debug print
@@ -79,11 +79,18 @@ class MessagingService {
   // Method to send a new message
   Future<void> sendMessage(String chatId, Message message) async {
     try {
-      await _firestore
-          .collection('chats')
-          .doc(chatId)
-          .collection('messages')
-          .add(message.toMap());
+      await _firestore.runTransaction((transaction) async {
+        DocumentReference messageRef = _firestore
+            .collection('chats')
+            .doc(chatId)
+            .collection('messages')
+            .doc();
+
+        transaction.set(messageRef, message.toMap());
+        transaction.update(_firestore.collection('chats').doc(chatId), {
+          'lastUpdated': message.timestamp,
+        });
+      });
     } catch (e) {
       print('Error sending message: $e');
     }
@@ -138,6 +145,7 @@ class MessagingService {
           chatId: chatId,
           messages: messages,
           participants: List<String>.from(data['participants']),
+          lastUpdated: data['lastUpdated'] ?? Timestamp.now(),
         );
       }
       return null;
