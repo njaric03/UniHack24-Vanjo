@@ -83,155 +83,161 @@ class _ChatScreenState extends State<ChatScreen> {
       appBar: AppBar(
         title: const Text('Chat'),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: StreamBuilder<List<Message>>(
-              stream: _messagingService.getMessagesStream(widget.chatId),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: StreamBuilder<List<Message>>(
+                stream: _messagingService.getMessagesStream(widget.chatId),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No messages yet.'));
-                }
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text('No messages yet.'));
+                  }
 
-                final messages = snapshot.data!;
+                  final messages = snapshot.data!;
 
-                return ListView.builder(
-                  reverse: true, // To show the latest messages at the bottom
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    final Message message = messages[index];
-                    final bool isMe = message.senderId == widget.currentUserId;
+                  return ListView.builder(
+                    reverse: true, // To show the latest messages at the bottom
+                    itemCount: messages.length,
+                    itemBuilder: (context, index) {
+                      final Message message = messages[index];
+                      final bool isMe = message.senderId == widget.currentUserId;
 
-                    return FutureBuilder<DocumentSnapshot>(
-                      future: FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(message.senderId)
-                          .get(),
-                      builder: (context, userSnapshot) {
-                        if (!userSnapshot.hasData) {
-                          return const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Text('Loading...'),
-                          );
-                        }
+                      return FutureBuilder<DocumentSnapshot>(
+                        future: FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(message.senderId)
+                            .get(),
+                        builder: (context, userSnapshot) {
+                          if (!userSnapshot.hasData) {
+                            return const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text('Loading...'),
+                            );
+                          }
 
-                        final Map<String, dynamic>? senderData =
-                            userSnapshot.data!.data() as Map<String, dynamic>?;
-                        final String senderName = senderData != null
-                            ? '${senderData['first_name']} ${senderData['last_name']}'
-                            : 'Unknown';
+                          final Map<String, dynamic>? senderData =
+                              userSnapshot.data!.data() as Map<String, dynamic>?;
+                          final String senderName = senderData != null
+                              ? '${senderData['first_name']} ${senderData['last_name']}'
+                              : 'Unknown';
 
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 4.0, horizontal: 8.0),
-                          child: Align(
-                            alignment: isMe
-                                ? Alignment.centerRight
-                                : Alignment.centerLeft,
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                maxWidth:
-                                    MediaQuery.of(context).size.width * 0.7,
-                              ),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 8.0, horizontal: 12.0),
-                                decoration: BoxDecoration(
-                                  color: isMe
-                                      ? AppTheme.primaryColor
-                                      : Colors.grey[300],
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: const Radius.circular(12.0),
-                                    topRight: const Radius.circular(12.0),
-                                    bottomLeft: isMe
-                                        ? const Radius.circular(12.0)
-                                        : Radius.zero,
-                                    bottomRight: isMe
-                                        ? Radius.zero
-                                        : const Radius.circular(12.0),
-                                  ),
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 4.0, horizontal: 8.0),
+                            child: Align(
+                              alignment: isMe
+                                  ? Alignment.centerRight
+                                  : Alignment.centerLeft,
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  maxWidth:
+                                      MediaQuery.of(context).size.width * 0.7,
                                 ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          senderName,
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                            color: isMe
-                                                ? Colors.white
-                                                : Colors.black,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          _formatTimestamp(message.timestamp),
-                                          style: TextStyle(
-                                            color: isMe
-                                                ? Colors.white70
-                                                : Colors.grey[600],
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ],
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 8.0, horizontal: 12.0),
+                                  decoration: BoxDecoration(
+                                    color: isMe
+                                        ? AppTheme.primaryColor
+                                        : Colors.grey[300],
+                                    borderRadius: BorderRadius.only(
+                                      topLeft: const Radius.circular(12.0),
+                                      topRight: const Radius.circular(12.0),
+                                      bottomLeft: isMe
+                                          ? const Radius.circular(12.0)
+                                          : Radius.zero,
+                                      bottomRight: isMe
+                                          ? Radius.zero
+                                          : const Radius.circular(12.0),
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      message.text,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color:
-                                            isMe ? Colors.white : Colors.black,
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            senderName,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                              color: isMe
+                                                  ? Colors.white
+                                                  : Colors.black,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            _formatTimestamp(message.timestamp),
+                                            style: TextStyle(
+                                              color: isMe
+                                                  ? Colors.white70
+                                                  : Colors.grey[600],
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        message.text,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color:
+                                              isMe ? Colors.white : Colors.black,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                );
-              },
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    decoration: InputDecoration(
-                      hintText: 'Enter your message...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20.0),
+            Padding(
+              padding: EdgeInsets.only(
+                left: 8.0,
+                right: 8.0,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 8.0,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _messageController,
+                      decoration: InputDecoration(
+                        hintText: 'Enter your message...',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20.0),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                            vertical: 10.0, horizontal: 16.0),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 10.0, horizontal: 16.0),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  color: Theme.of(context).primaryColor,
-                  onPressed: _sendMessage,
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.send),
+                    color: Theme.of(context).primaryColor,
+                    onPressed: _sendMessage,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

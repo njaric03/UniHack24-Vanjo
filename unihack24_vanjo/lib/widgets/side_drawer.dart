@@ -61,63 +61,77 @@ class _SideDrawerState extends State<SideDrawer> {
       width: widget.drawerWidth,
       child: Column(
         children: <Widget>[
-          // ignore: sized_box_for_whitespace
           Container(
             width: double.infinity,
             child: DrawerHeader(
               decoration: BoxDecoration(
                 color: Theme.of(context).primaryColor,
               ),
+              child: SafeArea(
+                bottom: false,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    UserAvatar(
+                      avatarId: widget.user.avatarId?.toString() ?? '0',
+                      firstName: widget.user.firstName,
+                      lastName: widget.user.lastName,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      '${widget.user.firstName} ${widget.user.lastName}',
+                      style: AppTheme.headline1.copyWith(color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: SafeArea(
+              top: false,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  UserAvatar(
-                    avatarId: widget.user.avatarId?.toString() ?? '0',
-                    firstName: widget.user.firstName,
-                    lastName: widget.user.lastName,
+                  ListTile(
+                    leading: Icon(Icons.settings),
+                    title: Text('Settings', style: AppTheme.bodyText1),
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    '${widget.user.firstName} ${widget.user.lastName}', // Display user's full name
-                    style: AppTheme.headline1.copyWith(color: Colors.white),
+                  ListTile(
+                    leading: Icon(Icons.help),
+                    title: Text('Help', style: AppTheme.bodyText1),
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.info),
+                    title: Text('About', style: AppTheme.bodyText1),
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                  SwitchListTile(
+                    title: Text('Dark Mode', style: AppTheme.bodyText1),
+                    value: _isDarkMode,
+                    onChanged: _toggleDarkMode,
+                    secondary: Icon(Icons.brightness_6),
+                  ),
+                  Spacer(),
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 16),
+                    child: ListTile(
+                      leading: Icon(Icons.logout),
+                      title: Text('Logout', style: AppTheme.bodyText1),
+                      onTap: () => _logout(context),
+                    ),
                   ),
                 ],
               ),
             ),
-          ),
-          ListTile(
-            leading: Icon(Icons.settings),
-            title: Text('Settings', style: AppTheme.bodyText1),
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.help),
-            title: Text('Help', style: AppTheme.bodyText1),
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.info),
-            title: Text('About', style: AppTheme.bodyText1),
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
-          SwitchListTile(
-            title: Text('Dark Mode', style: AppTheme.bodyText1),
-            value: _isDarkMode,
-            onChanged: _toggleDarkMode,
-            secondary: Icon(Icons.brightness_6),
-          ),
-          Spacer(),
-          ListTile(
-            leading: Icon(Icons.logout),
-            title: Text('Logout', style: AppTheme.bodyText1),
-            onTap: () => _logout(context),
           ),
         ],
       ),
