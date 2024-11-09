@@ -1,5 +1,7 @@
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, Optional, List, Union
 import networkx as nx
+import pickle
+import os
 import pandas as pd
 from numpy import nan
 import matplotlib.pyplot as plt
@@ -129,3 +131,26 @@ class UserGraph:
         nx.draw_networkx_edge_labels(sG, pos=pos, edge_labels=edge_labels, connectionstyle='arc3,rad=0.1')
         plt.show()
 
+    def save_to_file(self, file_path: Union[str, os.PathLike]) -> None:
+        """
+        Serializes and saves the UserGraph instance to a pickle file.
+
+        Parameters:
+            file_path (Union[str, os.PathLike]): Path to the file where the instance will be saved.
+        """
+        with open(file_path, 'wb') as f:
+            pickle.dump(self, f)
+
+    @classmethod
+    def load_from_file(cls, file_path: Union[str, os.PathLike]) -> 'UserGraph':
+        """
+        Loads a UserGraph instance from a pickle file.
+
+        Parameters:
+            file_path (Union[str, os.PathLike]): Path to the file where the instance is saved.
+
+        Returns:
+            UserGraph: The deserialized UserGraph instance.
+        """
+        with open(file_path, 'rb') as f:
+            return pickle.load(f)
