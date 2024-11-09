@@ -3,14 +3,38 @@ import networkx as nx
 import pickle
 import os
 import pandas as pd
-from numpy import nan
+import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+import random
+from PIL import Image, ImageOps, ImageDraw
+
+AVATARS_PATH = '../resources/avatars/'
+AVATAR_PATH_TEMPLATE = AVATARS_PATH + 'HEIF Image {}.jpeg'
+NUM_AVATARS = len(os.listdir(AVATARS_PATH))
+
 
 class UserGraph:
     def __init__(self) -> None:
         self.graph: nx.MultiDiGraph = nx.MultiDiGraph()
         self.cycles: List[List] = []
         self.nodes_in_cycle : List = []
+        self.images = self._load_images()
+
+    def _load_images(self) -> List:
+
+        def load_and_process_image(image_path):
+            img = Image.open(image_path).convert("RGBA")
+            size = min(img.size)
+            mask = Image.new("L", img.size, 0)
+            draw = ImageDraw.Draw(mask)
+            draw.ellipse((0, 0, size, size), fill=255)
+            mask = mask.resize(img.size)
+            circular_img = ImageOps.fit(img, (size, size), centering=(0.5, 0.5))
+            circular_img.putalpha(mask)
+            return circular_img
+
+        return [load_and_process_image(AVATAR_PATH_TEMPLATE.format(i)) for i in range(1, NUM_AVATARS)]
 
     def add_user(self, user_id: Any, attributes: Dict) -> None:
         """
@@ -29,7 +53,7 @@ class UserGraph:
         self.graph.add_node(user_id, **attributes)
 
         # If the user has a non-NaN 'teaching_subject', create edges for matching 'learning_subject' nodes
-        if attributes['teaching_subject'] is not nan:
+        if attributes['teaching_subject'] is not np.nan:
             for x, data in self.graph.nodes(data=True):
                 # Check if any node has a 'learning_subject' matching this user's 'teaching_subject'
                 if data.get('learning_subject') == attributes['teaching_subject']:
@@ -41,7 +65,7 @@ class UserGraph:
                     self.graph.add_edge(user_id, x, **edge_attrs)
 
         # If the user has a non-NaN 'learning_subject', create edges for matching 'teaching_subject' nodes
-        if attributes['learning_subject'] is not nan:
+        if attributes['learning_subject'] is not np.nan:
             for x, data in self.graph.nodes(data=True):
                 # Check if any node has a 'teaching_subject' matching this user's 'learning_subject'
                 if data.get('teaching_subject') == attributes['learning_subject']:
@@ -115,20 +139,56 @@ class UserGraph:
 
 
     def draw_cycle(self, user_id : int):
-        plt.figure(figsize=(10, 5))
 
-        cycle_nodes = self.find_best_cycle(user_id)
+        G = nx.subgraph(self.graph, self.find_best_cycle(user_id))
 
-        if cycle_nodes is None:
-            return
+        pos = nx.spring_layout(G)
 
-        sG = self.graph.subgraph(cycle_nodes)
-        pos = nx.planar_layout(sG)
-        nx.draw(sG, with_labels=True, pos=pos)
-        edge_labels = {(u, v): f"Subject: {d['subject']}, Rating: {d['rating_avg_teacher']}"
-                       for u, v, d in sG.edges(data=True)}
+        teaching_subjects = set(nx.get_node_attributes(G, 'teaching_subject').values())
+        color_map = {subject: f'#{random.randint(0, 0xFFFFFF):06x}' for subject in teaching_subjects}
 
-        nx.draw_networkx_edge_labels(sG, pos=pos, edge_labels=edge_labels, connectionstyle='arc3,rad=0.1')
+        plt.figure(figsize=(10, 7))
+
+        edge_labels = {(u, v): f"{d['subject']} ({d['rating_avg_teacher']})"
+                       for u, v, d in G.edges(data=True)}
+
+        nx.draw(
+            G, pos, node_size=0, edge_color='black',
+            arrows=True, arrowsize=1, connectionstyle='angle3',
+        )
+
+        for edge in G.edges():
+            source, target = edge
+
+            arrowstyle = '-|>'  # Define arrow shape
+            arrowsize = 30  # Define arrow length
+            start_subject = G.nodes[source]['teaching_subject']
+            edge_color = color_map[start_subject]  # Use the start node's teaching subject for color
+
+            # Draw each edge individually
+            nx.draw_networkx_edges(
+                G, pos,
+                edgelist=[(source, target)],
+                arrowstyle=arrowstyle,
+                arrowsize=arrowsize,
+                edge_color=edge_color,
+                min_target_margin=20,
+                connectionstyle="angle3"
+            )
+            nx.draw_networkx_edge_labels(
+                G, pos,
+                edge_labels=edge_labels,
+                connectionstyle="angle3"
+            )
+
+        ax = plt.gca()
+        for node, (x, y) in pos.items():
+            img = np.array(self.images[node % NUM_AVATARS])
+            imagebox = OffsetImage(img, zoom=0.04)
+            ab = AnnotationBbox(imagebox, (x, y), frameon=False)
+            ax.add_artist(ab)
+
+        plt.axis('off')
         plt.show()
 
     def save_to_file(self, file_path: Union[str, os.PathLike]) -> None:
