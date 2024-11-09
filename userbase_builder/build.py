@@ -1,3 +1,5 @@
+import threading
+import time
 import firebase_admin
 import pandas as pd
 import random
@@ -9,8 +11,8 @@ firebase_admin.initialize_app(cred)
 print("Done")
 db = firestore.client()
 
-users = pd.read_csv('./userbase_builder/users.csv')
-edges = pd.read_csv('./userbase_builder/teacher_student_connections.csv')
+#users = pd.read_csv('./userbase_builder/users.csv')
+#edges = pd.read_csv('./userbase_builder/teacher_student_connections.csv')
 ID = {}
 def sign_in_all():
     for index, row in users.iterrows():
@@ -32,14 +34,6 @@ def sign_in(mail, passw):
     user = auth.create_user(email=mail, password=passw)
     return user.uid
 
-def upload_avatar(id, file_path):
-    blob = bucket.blob(f'avatars/{id}.jpeg')
-    blob.upload_from_filename(file_path)
-    blob.make_public()
-    return blob.public_url
-#for i in range (1, 2):
-    #upload_avatar(format(i), "./avatari/1.jpeg")
-        
 reviews = {
     1: [
         "Terrible experience, I wouldn't recommend this at all.",
@@ -116,4 +110,3 @@ def add_user_to_firestore():
             print("User updated!")
         except Exception as e:
             print("Failed loading acc: " + format(row['user_id']))
-add_user_to_firestore()
