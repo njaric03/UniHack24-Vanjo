@@ -34,7 +34,7 @@ class UserGraph:
             circular_img.putalpha(mask)
             return circular_img
 
-        return [load_and_process_image(AVATAR_PATH_TEMPLATE.format(i)) for i in range(1, NUM_AVATARS)]
+        return [load_and_process_image(AVATAR_PATH_TEMPLATE.format(i)) for i in range(1, NUM_AVATARS+1)]
 
     def add_user(self, user_id: Any, attributes: Dict) -> None:
         """
@@ -178,16 +178,24 @@ class UserGraph:
             nx.draw_networkx_edge_labels(
                 G, pos,
                 edge_labels=edge_labels,
-                connectionstyle="angle3"
+                connectionstyle="angle3",
+                font_family='monospace'
             )
-
+            
+        #     nx.draw(G, pos=pos, with_labels=1, node_color='red',
+        # node_size=3000, font_color='white', font_size=20,
+        # font_family='Times New Roman', font_weight='bold',
+        # width=5)
         ax = plt.gca()
         for node, (x, y) in pos.items():
+            print(node, node % NUM_AVATARS)
             img = np.array(self.images[node % NUM_AVATARS])
+
             imagebox = OffsetImage(img, zoom=0.04)
             ab = AnnotationBbox(imagebox, (x, y), frameon=False)
             ax.add_artist(ab)
 
+        plt.savefig(f'{user_id}_best_cycle.png', transparent=True)
         plt.axis('off')
         plt.show()
 
