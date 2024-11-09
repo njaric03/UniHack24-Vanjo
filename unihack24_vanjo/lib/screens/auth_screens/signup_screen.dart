@@ -1,6 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api
 
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:unihack24_vanjo/models/user.dart';
 import 'package:unihack24_vanjo/screens/utility_screens/home_screen.dart';
@@ -22,7 +23,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
   bool _isLoading = false;
-  bool _isGoogleLoading = false;
   String? _errorMessage;
 
   List<String> _selectedLearningSubjects = [];
@@ -84,36 +84,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
-  Future<void> _signInWithGoogle() async {
-    setState(() {
-      _isGoogleLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final user = await _authService.signInWithGoogle();
-      if (user != null) {
-        await _handleSuccessfulSignUp(user.uid);
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = "Error signing in with Google. Please try again.";
-      });
-    } finally {
-      setState(() {
-        _isGoogleLoading = false;
-      });
-    }
-  }
-
   Future<void> _handleSuccessfulSignUp(String uid) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isLoggedIn', true);
     await prefs.setString('userID', uid);
 
+    Fluttertoast.showToast(
+      msg: "Sign up successful!",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.green,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
+
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) => HomeScreen(pageName: 'Sign up'),
+        builder: (context) => HomeScreen(pageName: ''),
       ),
     );
   }
@@ -159,19 +147,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Sign up'),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(height: 50), // Add some space at the top
-            Text(
-              'Sign Up',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
             SizedBox(height: 20),
             if (_errorMessage != null)
               Text(
@@ -224,21 +207,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 : ElevatedButton(
                     onPressed: _signUp,
                     child: Text('Sign Up with Email'),
-                  ),
-            SizedBox(height: 16),
-            _isGoogleLoading
-                ? CircularProgressIndicator()
-                : ElevatedButton.icon(
-                    onPressed: _signInWithGoogle,
-                    icon: Image.network(
-                      'https://www.google.com/favicon.ico',
-                      height: 24.0,
-                    ),
-                    label: Text('Sign up with Google'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black,
-                    ),
                   ),
             SizedBox(height: 10),
             TextButton(

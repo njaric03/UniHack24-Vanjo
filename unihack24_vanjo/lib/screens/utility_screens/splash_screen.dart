@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:unihack24_vanjo/models/user.dart';
 import 'package:unihack24_vanjo/screens/utility_screens/home_screen.dart';
-import 'package:unihack24_vanjo/screens/auth_screens/signin_screen.dart';
+import 'package:unihack24_vanjo/screens/utility_screens/welcome_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -37,13 +37,13 @@ class _SplashScreenState extends State<SplashScreen> {
       } else {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => SignInScreen()),
+          MaterialPageRoute(builder: (context) => WelcomeScreen()),
         );
       }
     } else {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => SignInScreen()),
+        MaterialPageRoute(builder: (context) => WelcomeScreen()),
       );
     }
   }

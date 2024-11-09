@@ -1,6 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api
 
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:unihack24_vanjo/screens/utility_screens/home_screen.dart';
 import '../../services/auth_service.dart';
@@ -37,6 +38,16 @@ class _SignInScreenState extends State<SignInScreen> {
         await prefs.setBool('isLoggedIn', true);
         await prefs.clear();
         await prefs.setString('userID', user.uid); // Save the userID (uid)
+
+        Fluttertoast.showToast(
+          msg: "Sign in successful!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
 
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
@@ -75,6 +86,16 @@ class _SignInScreenState extends State<SignInScreen> {
         await prefs.setBool('isLoggedIn', true);
         await prefs.clear();
         await prefs.setString('userID', user.uid);
+
+        Fluttertoast.showToast(
+          msg: "Sign in successful!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
 
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
