@@ -103,6 +103,7 @@ class UserGraph:
         nx.set_node_attributes(G, users_df.set_index('user_id')['rating_avg'].to_dict(), 'rating_avg_teacher')
         nx.set_node_attributes(G, users_df.set_index('user_id')['teaching_subject'].to_dict(), 'teaching_subject')
         nx.set_node_attributes(G, users_df.set_index('user_id')['learning_subject'].to_dict(), 'learning_subject')
+        nx.set_node_attributes(G, users_df.set_index('user_id')['avatar_id'].to_dict(), 'avatar_id')
 
         self.graph = G
 
@@ -120,6 +121,7 @@ class UserGraph:
         pos = nx.arf_layout(G, pos = nx.planar_layout(G))
 
         teaching_subjects = set(nx.get_node_attributes(G, 'teaching_subject').values())
+        avatar_ids = { x : data['avatar_id'] - 1 for x, data in G.nodes(data = True)}
         color_map = {subject: f'#{random.randint(0, 0xFFFFFF):06x}' for subject in teaching_subjects}
 
         plt.figure(figsize=(10, 7))
@@ -158,8 +160,7 @@ class UserGraph:
             
         ax = plt.gca()
         for node, (x, y) in pos.items():
-            print(node, node % NUM_AVATARS)
-            img = np.array(self.images[node % NUM_AVATARS])
+            img = np.array(self.images[avatar_ids[node]])
 
             imagebox = OffsetImage(img, zoom=0.04)
             ab = AnnotationBbox(imagebox, (x, y), frameon=False)
