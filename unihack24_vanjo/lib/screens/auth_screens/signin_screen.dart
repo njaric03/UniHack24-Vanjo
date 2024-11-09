@@ -61,6 +61,8 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   Future<void> _signInWithGoogle() async {
+    FocusScope.of(context).unfocus();
+
     setState(() {
       _isGoogleLoading = true;
       _errorMessage = null;

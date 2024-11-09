@@ -59,6 +59,9 @@ class _SideDrawerState extends State<SideDrawer> {
   Widget build(BuildContext context) {
     return Drawer(
       width: widget.drawerWidth,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.zero,
+      ),
       child: Column(
         children: <Widget>[
           Container(
