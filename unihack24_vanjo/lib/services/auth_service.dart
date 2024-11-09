@@ -119,4 +119,15 @@ class AuthService {
       return null;
     }
   }
+
+  Future<List<String>> fetchClasses() async {
+    try {
+      QuerySnapshot snapshot = await _firestore.collection('classes').get();
+      List<String> subjects = snapshot.docs.map((doc) => doc.id).toList();
+      return subjects;
+    } catch (e) {
+      print('Error fetching classes: $e');
+      return [];
+    }
+  }
 }

@@ -56,16 +56,20 @@ class AllChatsScreen extends StatelessWidget {
                   timestamp = _formatTimestamp(ts);
                 }
 
-                return FutureBuilder<String>(
+                return FutureBuilder<Map<String, String>>(
                   future: _getParticipantName(otherParticipantId),
                   builder: (context, namesSnapshot) {
-                    final username = namesSnapshot.data ?? 'Loading...';
+                    final firstName =
+                        namesSnapshot.data?['first_name'] ?? 'Loading';
+                    final lastName = namesSnapshot.data?['last_name'] ?? '...';
+                    final initials =
+                        '${firstName[0].toUpperCase()}${lastName[0].toUpperCase()}';
 
                     return ListTile(
                       leading: CircleAvatar(
                         backgroundColor: Theme.of(context).primaryColor,
                         child: Text(
-                          username.isNotEmpty ? username[0].toUpperCase() : '?',
+                          initials,
                           style: const TextStyle(color: Colors.white),
                         ),
                       ),
@@ -73,7 +77,7 @@ class AllChatsScreen extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              username,
+                              '$firstName $lastName',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -116,18 +120,29 @@ class AllChatsScreen extends StatelessWidget {
     ));
   }
 
-  Future<String> _getParticipantName(String participantId) async {
+  Future<Map<String, String>> _getParticipantName(String participantId) async {
     try {
       final userDoc =
           await _firestore.collection('users').doc(participantId).get();
       final userData = userDoc.data();
-      if (userData != null && userData.containsKey('username')) {
-        return userData['username'];
+      if (userData != null &&
+          userData.containsKey('first_name') &&
+          userData.containsKey('last_name')) {
+        return {
+          'first_name': userData['first_name'],
+          'last_name': userData['last_name'],
+        };
       }
-      return participantId;
+      return {
+        'first_name': 'Unknown',
+        'last_name': 'User',
+      };
     } catch (e) {
       print('Error getting participant name: $e');
-      return participantId;
+      return {
+        'first_name': 'Unknown',
+        'last_name': 'User',
+      };
     }
   }
 
