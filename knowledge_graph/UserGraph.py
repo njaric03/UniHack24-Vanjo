@@ -74,7 +74,10 @@ class UserGraph:
         lst = []
         for i, x in enumerate(self.cycles):
             if user_id in x:
-                sum_of_weights = sum([self.graph.nodes(data=True)[y].get('rating_avg_teacher') for y in x])
+                sum_of_weights = 0
+                for node in x:
+                    weight = self.graph.nodes(data=True)[node].get('rating_avg_teacher')
+                    sum_of_weights += weight if weight is not None else 0
                 lst.append((x, sum_of_weights))
         lst = sorted(lst, key= lambda x: (len(x[0]), -x[1]))
 
