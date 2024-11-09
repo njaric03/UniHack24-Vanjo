@@ -42,4 +42,37 @@ class AppTheme {
       secondary: accentColor,
     ),
   );
+
+  static ThemeData darkThemeData = ThemeData(
+    brightness: Brightness.dark,
+    primaryColor: Colors.blueGrey,
+    hintColor: Colors.cyan,
+    textTheme: TextTheme(
+      displayLarge: TextStyle(
+        fontFamily: fontFamily,
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      ),
+      bodyLarge: TextStyle(
+        fontFamily: fontFamily,
+        fontSize: 16,
+        color: Colors.white,
+      ),
+    ),
+    buttonTheme: ButtonThemeData(
+      buttonColor: AppTheme.primaryColor,
+      textTheme: ButtonTextTheme.primary,
+    ),
+    scaffoldBackgroundColor: Colors.black,
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      backgroundColor: Colors.black,
+      selectedItemColor: AppTheme.primaryColor,
+      unselectedItemColor: Colors.grey,
+    ),
+    colorScheme: ColorScheme.dark(
+      primary: AppTheme.primaryColor,
+      secondary: Colors.cyan,
+    ).copyWith(surface: Colors.black),
+  );
 }

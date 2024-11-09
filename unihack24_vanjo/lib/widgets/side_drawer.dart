@@ -1,4 +1,4 @@
-// ignore_for_file: sized_box_for_whitespace
+// ignore_for_file: library_private_types_in_public_api, sized_box_for_whitespace
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,15 +12,14 @@ class SideDrawer extends StatefulWidget {
     super.key,
     required this.drawerWidth,
     required this.user,
-    // required this.onThemeChanged,
+    required this.onThemeChanged,
   });
 
   final double drawerWidth;
   final SkillCycleUser user;
-  // final ValueChanged<bool> onThemeChanged;
+  final VoidCallback onThemeChanged;
 
   @override
-  // ignore: library_private_types_in_public_api
   _SideDrawerState createState() => _SideDrawerState();
 }
 
@@ -46,7 +45,7 @@ class _SideDrawerState extends State<SideDrawer> {
       _isDarkMode = value;
       prefs.setBool('isDarkMode', value);
     });
-    // widget.onThemeChanged(value);
+    widget.onThemeChanged();
   }
 
   Future<void> _logout(BuildContext context) async {
@@ -86,7 +85,8 @@ class _SideDrawerState extends State<SideDrawer> {
                     SizedBox(height: 8),
                     Text(
                       '${widget.user.firstName} ${widget.user.lastName}',
-                      style: AppTheme.headline1.copyWith(color: Colors.white),
+                      style: AppTheme.headline1
+                          .copyWith(color: AppTheme.textColor),
                     ),
                   ],
                 ),
