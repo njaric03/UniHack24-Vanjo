@@ -136,15 +136,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
               return FilterChip(
                 label: Text(subject),
                 selected: isSelected,
-                selectedColor:
-                    Theme.of(context).primaryColor, // Set selected color
+                selectedColor: Theme.of(context).primaryColor,
                 onSelected: (selected) {
                   setState(() {
                     if (selected) {
-                      onChanged([...selectedSubjects, subject]);
+                      // Override with only the newly selected subject
+                      onChanged([subject]);
                     } else {
-                      onChanged(
-                          selectedSubjects.where((s) => s != subject).toList());
+                      // Clear the selection if the subject is deselected
+                      onChanged([]);
                     }
                   });
                 },

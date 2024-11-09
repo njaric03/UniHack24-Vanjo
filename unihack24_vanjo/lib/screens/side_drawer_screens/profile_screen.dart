@@ -15,7 +15,6 @@ class ProfileScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            _buildProfileField('Email', user.email),
             _buildProfileField('First Name', user.firstName),
             _buildProfileField('Last Name', user.lastName),
             _buildProfileField('Username', user.username),
