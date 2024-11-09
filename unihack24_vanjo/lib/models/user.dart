@@ -11,7 +11,7 @@ class SkillCycleUser {
   int credits;
   int hoursTeaching;
   double ratingAvg;
-  int? avatarId; // New field for avatar ID
+  int? avatarId;
   List<String>? learningSubjects;
   List<String>? teachingSubjects;
   List<Review>? reviews;
@@ -39,7 +39,7 @@ class SkillCycleUser {
       'credits': credits,
       'hours_teaching': hoursTeaching,
       'rating_avg': ratingAvg,
-      'avatar_id': avatarId, // Add avatarId to the map
+      'avatar_id': avatarId,
       'learning_subject': learningSubjects ?? [],
       'teaching_subject': teachingSubjects ?? [],
       'reviews': reviews?.map((review) => review.toMap()).toList() ?? [],
@@ -83,7 +83,7 @@ class SkillCycleUser {
       credits: map['credits'] ?? 0,
       hoursTeaching: map['hours_teaching'] ?? 0,
       ratingAvg: map['rating_avg']?.toDouble() ?? 0.0,
-      avatarId: map['avatar_id'], // Retrieve avatarId from the map
+      avatarId: map['avatar_id'],
       learningSubjects: extractReferenceIds(map['learning_subject']),
       teachingSubjects: extractReferenceIds(map['teaching_subject']),
       reviews: reviews,

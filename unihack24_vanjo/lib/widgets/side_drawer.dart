@@ -3,18 +3,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:unihack24_vanjo/theme/app_theme.dart';
 import 'package:unihack24_vanjo/models/user.dart';
 import 'package:unihack24_vanjo/screens/auth_screens/signin_screen.dart';
+import 'package:unihack24_vanjo/models/user_avatar.dart';
 
 class SideDrawer extends StatefulWidget {
   const SideDrawer({
     super.key,
     required this.drawerWidth,
     required this.user,
-//    required this.onThemeChanged,
+    // required this.onThemeChanged,
   });
 
   final double drawerWidth;
   final SkillCycleUser user;
-  //final ValueChanged<bool> onThemeChanged;
+  // final ValueChanged<bool> onThemeChanged;
 
   @override
   // ignore: library_private_types_in_public_api
@@ -43,7 +44,7 @@ class _SideDrawerState extends State<SideDrawer> {
       _isDarkMode = value;
       prefs.setBool('isDarkMode', value);
     });
-    //widget.onThemeChanged(value);
+    // widget.onThemeChanged(value);
   }
 
   Future<void> _logout(BuildContext context) async {
@@ -71,11 +72,16 @@ class _SideDrawerState extends State<SideDrawer> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  UserAvatar(
+                    avatarId: widget.user.avatarId?.toString() ?? '0',
+                    firstName: widget.user.firstName,
+                    lastName: widget.user.lastName,
+                  ),
+                  SizedBox(height: 8),
                   Text(
                     '${widget.user.firstName} ${widget.user.lastName}', // Display user's full name
                     style: AppTheme.headline1.copyWith(color: Colors.white),
                   ),
-                  SizedBox(height: 8),
                 ],
               ),
             ),

@@ -1,4 +1,4 @@
-// ignore_for_file: library_private_types_in_public_api
+// ignore_for_file: library_private_types_in_public_api, avoid_print
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,11 +36,16 @@ class _HomeScreenState extends State<HomeScreen> {
     String? loadedUserID = prefs.getString('userID');
 
     if (loadedUserID != null) {
+      print(
+          'Loaded user ID: $loadedUserID'); // Debugging to check if the userID is loaded correctly
       SkillCycleUser? user = await SkillCycleUser.getUserById(loadedUserID);
+      print('Fetched User: $user'); // Check what user is fetched from Firestore
       setState(() {
         currentUser = user;
         userID = loadedUserID; // Store the userID
       });
+    } else {
+      print('No user ID found in SharedPreferences');
     }
   }
 
