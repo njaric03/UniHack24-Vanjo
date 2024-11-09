@@ -36,7 +36,7 @@ class _FoundCycleScreenState extends State<FoundCycleScreen> {
   }
 
   Future<void> _fetchAndDisplayImage() async {
-    await _apiService.fetchAndSaveImage('FX5pjNkaiobajpRTuNBfTkx4JWx1');
+    await _apiService.fetchAndSaveImage(widget.currentUserEmail);
     setState(() {
       _imageBytes = _apiService.loadImage();
     });
@@ -50,6 +50,8 @@ class _FoundCycleScreenState extends State<FoundCycleScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Found Skill Cycle', style: TextStyle(color: Colors.black)),
+        backgroundColor: Colors.white,
+        elevation: 1,
       ),
       body: Column(
         children: [
@@ -77,6 +79,8 @@ class _FoundCycleScreenState extends State<FoundCycleScreen> {
               ),
             ),
           ),
+          const SizedBox(
+              height: 16), // Increased padding between image and first UserCard
           Expanded(
             child: ListView.builder(
               itemCount: widget.users.length,

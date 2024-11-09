@@ -81,17 +81,17 @@ class UserCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 2.0),
       child: Card(
         color: role.cardColor,
         shape: RoundedRectangleBorder(
-          side: BorderSide(color: role.borderColor, width: 2),
-          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: role.borderColor, width: 1.5),
+          borderRadius: BorderRadius.circular(10),
         ),
         child: ListTile(
-          contentPadding: const EdgeInsets.all(12),
+          contentPadding: const EdgeInsets.all(8),
           leading: CircleAvatar(
-            radius: 25,
+            radius: 20,
             backgroundImage: user.avatarId != null
                 ? AssetImage(
                     'assets/avatars/avatari/HEIF Image ${user.avatarId}.jpeg')
@@ -101,7 +101,7 @@ class UserCard extends StatelessWidget {
             '${user.firstName} ${user.lastName}',
             style: const TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 16,
+              fontSize: 14,
               color: Colors.black87,
             ),
           ),
@@ -110,14 +110,15 @@ class UserCard extends StatelessWidget {
             children: [
               Text(
                 user.username ?? '',
-                style: const TextStyle(color: Colors.black54),
+                style: const TextStyle(color: Colors.black54, fontSize: 12),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               Text(
                 role.roleText,
                 style: TextStyle(
                   color: role.textColor,
                   fontWeight: FontWeight.w500,
+                  fontSize: 12,
                 ),
               ),
             ],

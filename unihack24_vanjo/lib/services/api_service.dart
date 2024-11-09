@@ -10,6 +10,22 @@ import 'package:unihack24_vanjo/theme/strings.dart' as strings;
 class ApiService {
   final String apiUrl = strings.apiUrl;
 
+  Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
+    final path = directory.path;
+    // Create the graphs directory if it doesn't exist
+    final graphsDir = Directory('$path/graphs');
+    if (!await graphsDir.exists()) {
+      await graphsDir.create(recursive: true);
+    }
+    return '$path/graphs';
+  }
+
+  Future<File> get _localFile async {
+    final path = await _localPath;
+    return File('$path/cycle_image.png');
+  }
+
   Future<void> fetchAndSaveImage(String userId) async {
     try {
       final response = await http.post(
@@ -23,19 +39,34 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
+
+        if (responseData.containsKey('cycle_nodes')) {
+          print('Cycle Nodes:');
+          List<dynamic> cycleNodes = responseData['cycle_nodes'];
+          for (int i = 0; i < cycleNodes.length; i++) {
+            print('Node $i: ${cycleNodes[i]}');
+          }
+        } else {
+          print('No cycle_nodes found in response');
+        }
+
         if (responseData.containsKey('cycle_image')) {
-          // Changed from 'encoded_image' to 'cycle_image'
           String base64Image = responseData['cycle_image'];
 
-          // Remove potential data URL prefix if present
+          print('\nEncoded Image (first 100 chars):');
+          print(base64Image.substring(0, min(100, base64Image.length)));
+          print('Total encoded image length: ${base64Image.length}');
+
           if (base64Image.contains(',')) {
             base64Image = base64Image.split(',')[1];
+            print('Removed data URL prefix');
           }
 
-          // Clean the base64 string
           base64Image = base64Image.trim();
           base64Image = base64Image.replaceAll('\n', '');
           base64Image = base64Image.replaceAll('\r', '');
+
+          print('Base64 string is valid: ${isValidBase64(base64Image)}');
 
           await saveImage(base64Image);
         } else {
@@ -54,18 +85,14 @@ class ApiService {
 
   Future<void> saveImage(String base64Image) async {
     try {
-      // Decode the base64 string to bytes
       Uint8List decodedBytes = base64Decode(base64Image);
+      print(
+          'Successfully decoded base64 to bytes. Size: ${decodedBytes.length} bytes');
 
-      // Get the application documents directory
-      final directory = await getApplicationDocumentsDirectory();
-      final imagePath = '${directory.path}/cycle_image.png';
-
-      // Save the decoded image
-      final file = File(imagePath);
+      final file = await _localFile;
       await file.writeAsBytes(decodedBytes);
 
-      print('Image saved successfully to: $imagePath');
+      print('Image saved successfully to: ${file.path}');
     } catch (e) {
       print('Error saving image: $e');
       print('Base64 string length: ${base64Image.length}');
@@ -76,14 +103,14 @@ class ApiService {
 
   Future<Uint8List?> loadImage() async {
     try {
-      final directory = await getApplicationDocumentsDirectory();
-      final imagePath = '${directory.path}/cycle_image.png';
-      final file = File(imagePath);
+      final file = await _localFile;
 
       if (await file.exists()) {
-        return await file.readAsBytes();
+        final bytes = await file.readAsBytes();
+        print('Successfully loaded image. Size: ${bytes.length} bytes');
+        return bytes;
       } else {
-        print('Image file not found at: $imagePath');
+        print('Image file not found at: ${file.path}');
         return null;
       }
     } catch (e) {
@@ -92,7 +119,6 @@ class ApiService {
     }
   }
 
-  // Utility function to check if a string is valid base64
   bool isValidBase64(String str) {
     try {
       base64Decode(str);
@@ -102,6 +128,5 @@ class ApiService {
     }
   }
 
-  // Helper function to get minimum of two numbers
   int min(int a, int b) => a < b ? a : b;
 }
