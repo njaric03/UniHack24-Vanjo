@@ -1,0 +1,26 @@
+subject_ro,subject_eng,professor_count,student_count
+matematica,Mathematics,562,12
+informatică,Computer science,102,4
+biologie,Biology,186,1
+chimie,Chemistry,117,3
+fizică,Physics,82,2
+geografie,Geography,72,0
+istorie,History,148,2
+limba română,Romanian language,431,3
+limba engleză,English language,532,2
+limba franceză,French language,129,2
+limba germană,German language,95,3
+limba spaniolă,Spanish language,7,1
+economie,Economics,23,0
+filosofie,Philosophy,5,0
+psihologie,Psychology,29,1
+sociologie,Sociology,9,0
+educație civică,Civic education,1,0
+științe politice,Political science,8,0
+arte vizuale,Visual arts,3,0
+muzică,Music,25,0
+educație fizică,Physical education,1,0
+tehnologia informației,Information technology,15,0
+religie,Religion,1,0
+management,Management,1,0
+contabilitate,Accounting,23,0
