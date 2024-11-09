@@ -1,15 +1,19 @@
+// ignore_for_file: unused_local_variable
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:unihack24_vanjo/theme/strings.dart';
 import 'screens/utility_screens/splash_screen.dart';
 import 'config/firebase_options.dart';
 import 'theme/app_theme.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
   runApp(MyApp());
 }
 

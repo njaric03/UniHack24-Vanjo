@@ -92,7 +92,6 @@ class AuthService {
             await _firestore.collection('users').doc(user.uid).get();
 
         if (!userDoc.exists) {
-          // Split display name into first and last name
           List<String> nameParts = (user.displayName ?? 'User').split(' ');
           String firstName = nameParts.first;
           String lastName = nameParts.length > 1 ? nameParts.last : '';

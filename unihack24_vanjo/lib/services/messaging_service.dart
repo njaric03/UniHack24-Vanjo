@@ -1,11 +1,33 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print, unused_field
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import '../models/message.dart';
 import '../models/chat.dart';
 
 class MessagingService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+
+  // Send notification method
+  Future<void> sendPushNotification(
+      String receiverId, String messageText) async {
+    // Fetch the recipient’s FCM token
+    final userDoc = await _firestore.collection('users').doc(receiverId).get();
+    final String? fcmToken = userDoc.data()?['fcm_token'];
+
+    if (fcmToken != null) {
+      // Use Firebase Functions, or a cloud function to send notification
+      await _firestore.collection('notifications').add({
+        'to': fcmToken,
+        'notification': {
+          'title': 'New Message',
+          'body': messageText,
+        },
+      });
+    }
+  }
 
   // Method to create a new chat
   Future<String?> createChat(String participant1, String participant2) async {
