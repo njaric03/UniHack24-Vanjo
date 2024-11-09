@@ -7,6 +7,53 @@ import '../models/chat.dart';
 class MessagingService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // Method to create a new chat
+  Future<String?> createChat(String participant1, String participant2) async {
+    try {
+      // Check if chat exists with either participant
+      QuerySnapshot existingChats = await _firestore
+          .collection('chats')
+          .where('participants', arrayContainsAny: [participant1]).get();
+
+      // Find chat that contains both participants
+      for (var doc in existingChats.docs) {
+        List<String> participants = List<String>.from(doc['participants']);
+        if (participants.contains(participant1) &&
+            participants.contains(participant2)) {
+          return doc.id;
+        }
+      }
+
+      // If no chat exists, create a new one
+      DocumentReference chatRef = await _firestore.collection('chats').add({
+        'participants': [participant1, participant2],
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      return chatRef.id;
+    } catch (e) {
+      print('Error creating chat: $e');
+      return null;
+    }
+  }
+
+  // Method to get user's chats stream
+  Stream<QuerySnapshot> getUserChatsStream(String userId) {
+    return _firestore
+        .collection('chats')
+        .where('participants', arrayContains: userId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      print('Found ${snapshot.docs.length} chats'); // Debug print
+      for (var doc in snapshot.docs) {
+        print(
+            'Chat ${doc.id} participants: ${(doc.data())['participants']}'); // Debug data
+      }
+      return snapshot;
+    });
+  }
+
   // Method to send a new message
   Future<void> sendMessage(String chatId, Message message) async {
     try {
@@ -33,12 +80,15 @@ class MessagingService {
     });
   }
 
-  Stream<QuerySnapshot> getUserChatsStream(String userId) {
-    return _firestore
-        .collection('chats')
-        .where('participant1', isEqualTo: userId)
-        .where('participant2', isEqualTo: userId)
-        .snapshots();
+  // Helper method to get the other participant's ID
+  String getOtherParticipantId(
+      List<dynamic> participants, String currentUserId) {
+    return participants
+        .firstWhere(
+          (id) => id.toString() != currentUserId,
+          orElse: () => '',
+        )
+        .toString();
   }
 
   // Method to get chat details
@@ -65,41 +115,12 @@ class MessagingService {
         return Chat(
           chatId: chatId,
           messages: messages,
-          participant1: data['participant1'],
-          participant2: data['participant2'],
+          participants: List<String>.from(data['participants']),
         );
       }
       return null;
     } catch (e) {
       print('Error getting chat: $e');
-      return null;
-    }
-  }
-
-  Future<String?> createChat(String participant1, String participant2) async {
-    try {
-      // Check if chat already exists
-      QuerySnapshot existingChats = await _firestore
-          .collection('chats')
-          .where('participant1', isEqualTo: participant1)
-          .where('participant2', isEqualTo: participant2)
-          .limit(1)
-          .get();
-
-      if (existingChats.docs.isNotEmpty) {
-        return existingChats.docs.first.id;
-      }
-
-      // Create new chat if none exists
-      DocumentReference chatRef = await _firestore.collection('chats').add({
-        'participant1': participant1,
-        'participant2': participant2,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-
-      return chatRef.id;
-    } catch (e) {
-      print('Error creating chat: $e');
       return null;
     }
   }
@@ -128,15 +149,6 @@ class MessagingService {
       print('Error getting paginated messages: $e');
       return [];
     }
-  }
-
-  // Helper method to get the other participant's ID
-  String getOtherParticipantId(
-      Map<String, dynamic> chatData, String currentUserId) {
-    if (chatData['participant1'] == currentUserId) {
-      return chatData['participant2'];
-    }
-    return chatData['participant1'];
   }
 
   // Method to delete a chat

@@ -1,30 +1,33 @@
-import 'package:unihack24_vanjo/models/message.dart';
+// models/chat.dart
+
+// ignore: unused_import
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'message.dart';
 
 class Chat {
-  List<Message> messages; // This will now hold only the most recent messages
-  String participant1;
-  String participant2;
+  final String chatId;
+  final List<Message> messages;
+  final List<String> participants;
 
   Chat({
+    required this.chatId,
     required this.messages,
-    required this.participant1,
-    required this.participant2,
-    required String chatId,
+    required this.participants,
   });
 
+  // Creates a Chat object from a Map
   factory Chat.fromMap(String id, Map<String, dynamic> map) {
     return Chat(
-      messages: [],
-      participant1: map['participant1'],
-      participant2: map['participant2'],
       chatId: id,
+      messages: [], // Messages are fetched separately
+      participants: List<String>.from(map['participants'] ?? []),
     );
   }
 
+  // Converts Chat object to a Map
   Map<String, dynamic> toMap() {
     return {
-      'participant1': participant1,
-      'participant2': participant2,
+      'participants': participants,
     };
   }
 }
