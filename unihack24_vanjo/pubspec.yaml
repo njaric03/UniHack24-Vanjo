@@ -44,6 +44,7 @@ dependencies:
   firebase_messaging: 15.1.4
   fluttertoast: ^8.0.9
   http: ^1.2.2
+  path_provider: ^2.1.5
 
 
 
@@ -73,6 +74,7 @@ flutter:
   assets:
       - assets/avatars/avatari/
       - assets/icons/Android/
+      - assets/graphs/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

@@ -4,7 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:unihack24_vanjo/models/user.dart';
 import 'package:unihack24_vanjo/models/cycle.dart';
-import '../../widgets/found_cycle_widget.dart';
+import 'found_cycle_screen.dart';
 
 class FindScreen extends StatefulWidget {
   const FindScreen({super.key});

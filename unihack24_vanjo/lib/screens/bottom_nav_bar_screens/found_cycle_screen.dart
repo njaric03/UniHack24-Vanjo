@@ -1,8 +1,9 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:unihack24_vanjo/models/user.dart';
-import 'package:unihack24_vanjo/models/cycle.dart';
-import 'package:unihack24_vanjo/theme/app_theme.dart';
-import 'package:unihack24_vanjo/widgets/user_card_widget.dart'; // Assuming this is where you'll put the UserCard
+import 'package:unihack24_vanjo/services/api_service.dart';
+import '../../models/cycle.dart';
+import '../../models/user.dart';
+import '../../widgets/user_card_widget.dart';
 
 class FoundCycleScreen extends StatefulWidget {
   final List<SkillCycleUser> users;
@@ -25,6 +26,22 @@ class FoundCycleScreen extends StatefulWidget {
 }
 
 class _FoundCycleScreenState extends State<FoundCycleScreen> {
+  Future<Uint8List?>? _imageBytes;
+  final ApiService _apiService = ApiService();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAndDisplayImage();
+  }
+
+  Future<void> _fetchAndDisplayImage() async {
+    await _apiService.fetchAndSaveImage('FX5pjNkaiobajpRTuNBfTkx4JWx1');
+    setState(() {
+      _imageBytes = _apiService.loadImage();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     int currentUserIndex =
@@ -32,31 +49,31 @@ class _FoundCycleScreenState extends State<FoundCycleScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Found Skill Cycle',
-            style: TextStyle(color: AppTheme.textColor)),
-        backgroundColor: Colors.white,
-        elevation: 1,
+        title: Text('Found Skill Cycle', style: TextStyle(color: Colors.black)),
       ),
       body: Column(
         children: [
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-            child: Text(
-              'SkillCycle connects learners and teachers in a seamless cycle of knowledge exchange. Find the perfect match to enhance your skills or share your expertise.',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.black87,
-                  ),
-            ),
-          ),
-          Padding(
             padding: const EdgeInsets.all(16.0),
             child: Center(
-              child: Image.asset(
-                'assets/icons/Android/ic_launcher_google_play.png',
-                height: 100,
-                width: 100,
+              // Display the decoded image or a loading indicator
+              child: FutureBuilder<Uint8List?>(
+                future: _imageBytes,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
+                  } else if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  } else if (snapshot.hasData && snapshot.data != null) {
+                    return Image.memory(
+                      snapshot.data!,
+                      height: 300, // Enlarged image height
+                      width: 300, // Enlarged image width
+                    );
+                  } else {
+                    return const Text('No image available');
+                  }
+                },
               ),
             ),
           ),
@@ -99,10 +116,8 @@ class _FoundCycleScreenState extends State<FoundCycleScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 24.0, vertical: 12.0),
                     ),
-                    child: const Text(
-                      'Accept',
-                      style: TextStyle(fontSize: 16, color: Colors.white),
-                    ),
+                    child: const Text('Accept',
+                        style: TextStyle(fontSize: 16, color: Colors.white)),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -116,10 +131,8 @@ class _FoundCycleScreenState extends State<FoundCycleScreen> {
                       side: BorderSide(
                           color: Theme.of(context).primaryColor, width: 2),
                     ),
-                    child: const Text(
-                      'Find Other',
-                      style: TextStyle(fontSize: 16),
-                    ),
+                    child: const Text('Find Other',
+                        style: TextStyle(fontSize: 16)),
                   ),
                 ),
               ],
