@@ -18,6 +18,7 @@ class _SignInScreenState extends State<SignInScreen> {
   final _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
   String? _errorMessage;
 
   Future<void> _signIn() async {
@@ -59,6 +60,38 @@ class _SignInScreenState extends State<SignInScreen> {
     }
   }
 
+  Future<void> _signInWithGoogle() async {
+    setState(() {
+      _isGoogleLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final user = await _authService.signInWithGoogle();
+      if (user != null) {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isLoggedIn', true);
+        await prefs.clear();
+        await prefs.setString('userID', user.uid);
+
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+              builder: (context) => HomeScreen(
+                    pageName: '',
+                  )),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = "Error signing in with Google. Please try again.";
+      });
+    } finally {
+      setState(() {
+        _isGoogleLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -92,6 +125,21 @@ class _SignInScreenState extends State<SignInScreen> {
                 : ElevatedButton(
                     onPressed: _signIn,
                     child: Text('Sign In'),
+                  ),
+            SizedBox(height: 20),
+            _isGoogleLoading
+                ? CircularProgressIndicator()
+                : ElevatedButton.icon(
+                    onPressed: _signInWithGoogle,
+                    icon: Image.network(
+                      'https://www.google.com/favicon.ico',
+                      height: 24.0,
+                    ),
+                    label: Text('Sign in with Google'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                    ),
                   ),
             SizedBox(height: 10),
             TextButton(
