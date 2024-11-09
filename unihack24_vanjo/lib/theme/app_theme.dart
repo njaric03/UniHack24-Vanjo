@@ -6,6 +6,9 @@ class AppTheme {
   static const Color accentColor = Color(0xFFCDDC39);
   static const Color backgroundColor = Color(0xFFF5F5F5);
   static const Color textColor = Color(0xFF333333);
+  static const Color teacherColor = Colors.blue;
+  static const Color learnerColor = Colors.orange;
+  static const Color networkColor = primaryColor;
 
   // Define font styles
   static const String fontFamily = 'Roboto';
@@ -61,17 +64,17 @@ class AppTheme {
       ),
     ),
     buttonTheme: ButtonThemeData(
-      buttonColor: AppTheme.primaryColor,
+      buttonColor: Colors.blueGrey,
       textTheme: ButtonTextTheme.primary,
     ),
     scaffoldBackgroundColor: Colors.black,
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor: Colors.black,
-      selectedItemColor: AppTheme.primaryColor,
+      selectedItemColor: Colors.cyan,
       unselectedItemColor: Colors.grey,
     ),
     colorScheme: ColorScheme.dark(
-      primary: AppTheme.primaryColor,
+      primary: Colors.blueGrey,
       secondary: Colors.cyan,
     ).copyWith(surface: Colors.black),
   );
