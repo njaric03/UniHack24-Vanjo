@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/messaging_service.dart';
@@ -14,13 +16,10 @@ class AllChatsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chats'),
+        title: const Text('Chats'),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: _firestore
-            .collection('chats')
-            .where('participants', arrayContains: userId)
-            .snapshots(),
+        stream: messagingService.getUserChatsStream(userId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -35,11 +34,8 @@ class AllChatsScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               final chatDoc = snapshot.data!.docs[index];
               final chatData = chatDoc.data() as Map<String, dynamic>;
-
-              // Get the other participant's ID
               final otherParticipantId =
-                  (chatData['participants'] as List<dynamic>)
-                      .firstWhere((id) => id != userId);
+                  messagingService.getOtherParticipantId(chatData, userId);
 
               return StreamBuilder<QuerySnapshot>(
                 stream: _firestore
@@ -66,41 +62,86 @@ class AllChatsScreen extends StatelessWidget {
                   return FutureBuilder<String>(
                     future: _getParticipantName(otherParticipantId),
                     builder: (context, namesSnapshot) {
-                      return ListTile(
-                        leading: const CircleAvatar(
-                          child: Icon(Icons.person),
+                      final displayName = namesSnapshot.data ?? 'Loading...';
+
+                      return Dismissible(
+                        key: Key(chatDoc.id),
+                        background: Container(
+                          color: Colors.red,
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 20),
+                          child: const Icon(Icons.delete, color: Colors.white),
                         ),
-                        title: Text(namesSnapshot.data ?? 'Loading...'),
-                        subtitle: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                lastMessage,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            if (timestamp.isNotEmpty)
-                              Text(
-                                timestamp,
-                                style: const TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 12,
-                                ),
-                              ),
-                          ],
-                        ),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ChatScreen(
-                                chatId: chatDoc.id,
-                                currentUserId: userId,
-                              ),
-                            ),
+                        direction: DismissDirection.endToStart,
+                        confirmDismiss: (direction) async {
+                          return await showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text("Confirm"),
+                                content: Text(
+                                    "Are you sure you want to delete chat with $displayName?"),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(false),
+                                    child: const Text("CANCEL"),
+                                  ),
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(true),
+                                    child: const Text("DELETE"),
+                                  ),
+                                ],
+                              );
+                            },
                           );
                         },
+                        onDismissed: (direction) {
+                          messagingService.deleteChat(chatDoc.id);
+                        },
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: Theme.of(context).primaryColor,
+                            child: Text(
+                              displayName.isNotEmpty
+                                  ? displayName[0].toUpperCase()
+                                  : '?',
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ),
+                          title: Text(displayName),
+                          subtitle: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  lastMessage,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (timestamp.isNotEmpty)
+                                Text(
+                                  timestamp,
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                            ],
+                          ),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ChatScreen(
+                                  chatId: chatDoc.id,
+                                  currentUserId: userId,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                       );
                     },
                   );
@@ -109,6 +150,13 @@ class AllChatsScreen extends StatelessWidget {
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Navigate to new chat screen or show user selection dialog
+          _showNewChatDialog(context);
+        },
+        child: const Icon(Icons.chat),
       ),
     );
   }
@@ -121,24 +169,79 @@ class AllChatsScreen extends StatelessWidget {
       if (userData != null && userData.containsKey('displayName')) {
         return userData['displayName'];
       }
-      return participantId; // Fallback to ID if no display name
+      return participantId;
     } catch (e) {
-      return participantId; // Fallback to ID on error
+      print('Error getting participant name: $e');
+      return participantId;
     }
   }
 
   String _formatTimestamp(Timestamp timestamp) {
     final now = DateTime.now();
     final messageTime = timestamp.toDate();
+    final difference = now.difference(messageTime);
 
-    if (now.difference(messageTime).inDays == 0) {
-      // Today - show time
-      return '${messageTime.hour}:${messageTime.minute.toString().padLeft(2, '0')}';
-    } else if (now.difference(messageTime).inDays == 1) {
+    if (difference.inMinutes < 1) {
+      return 'Just now';
+    } else if (difference.inHours < 1) {
+      return '${difference.inMinutes}m ago';
+    } else if (difference.inDays < 1) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inDays == 1) {
       return 'Yesterday';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}d ago';
     } else {
-      // Show date
       return '${messageTime.day}/${messageTime.month}/${messageTime.year}';
     }
+  }
+
+  void _showNewChatDialog(BuildContext context) async {
+    // Get all users except current user
+    final usersSnapshot = await _firestore
+        .collection('users')
+        .where(FieldPath.documentId, isNotEqualTo: userId)
+        .get();
+
+    if (!context.mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Start New Chat'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: usersSnapshot.docs.length,
+              itemBuilder: (context, index) {
+                final userData = usersSnapshot.docs[index].data();
+                final otherUserId = usersSnapshot.docs[index].id;
+                return ListTile(
+                  title: Text(userData['displayName'] ?? 'Unknown User'),
+                  onTap: () async {
+                    final chatId =
+                        await messagingService.createChat(userId, otherUserId);
+                    if (chatId != null && context.mounted) {
+                      Navigator.of(context).pop(); // Close dialog
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChatScreen(
+                            chatId: chatId,
+                            currentUserId: userId,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
   }
 }

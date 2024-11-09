@@ -27,7 +27,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (_messageController.text.isNotEmpty) {
       final message = Message(
         senderId: widget.currentUserId,
-        receiverId: 'receiverId', // Set the receiverId appropriately
+        receiverId: 'receiverId',
         text: _messageController.text,
         timestamp: Timestamp.now(),
       );

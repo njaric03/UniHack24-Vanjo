@@ -10,7 +10,6 @@ class MessagingService {
   // Method to send a new message
   Future<void> sendMessage(String chatId, Message message) async {
     try {
-      // Create a new document in the messages subcollection
       await _firestore
           .collection('chats')
           .doc(chatId)
@@ -34,6 +33,15 @@ class MessagingService {
     });
   }
 
+  // Corrected Method to get user chats stream using Filter.or with two arguments
+  Stream<QuerySnapshot> getUserChatsStream(String userId) {
+    return _firestore
+        .collection('chats')
+        .where('participant1', isEqualTo: userId)
+        .where('participant2', isEqualTo: userId)
+        .snapshots();
+  }
+
   // Method to get chat details
   Future<Chat?> getChat(String chatId) async {
     try {
@@ -47,18 +55,19 @@ class MessagingService {
             .doc(chatId)
             .collection('messages')
             .orderBy('timestamp', descending: true)
-            .limit(50) // Adjust limit based on your needs
+            .limit(50)
             .get();
 
         List<Message> messages = messagesSnapshot.docs
             .map((doc) => Message.fromMap(doc.data() as Map<String, dynamic>))
             .toList();
 
+        Map<String, dynamic> data = chatDoc.data() as Map<String, dynamic>;
         return Chat(
           chatId: chatId,
           messages: messages,
-          participant1: chatDoc.get('participant1'),
-          participant2: chatDoc.get('participant2'),
+          participant1: data['participant1'],
+          participant2: data['participant2'],
         );
       }
       return null;
@@ -68,27 +77,31 @@ class MessagingService {
     }
   }
 
-  // Method to fetch chats for a user
-  Future<List<Chat>> getUserChats(String userId) async {
+  Future<String?> createChat(String participant1, String participant2) async {
     try {
-      DocumentSnapshot userDoc =
-          await _firestore.collection('users').doc(userId).get();
-      if (userDoc.exists) {
-        List<dynamic> chatRefs = userDoc['chats'];
-        List<Chat> chats = [];
-        for (var chatRef in chatRefs) {
-          DocumentSnapshot chatDoc = await (chatRef as DocumentReference).get();
-          if (chatDoc.exists) {
-            chats.add(Chat.fromMap(
-                chatDoc.id, chatDoc.data() as Map<String, dynamic>));
-          }
-        }
-        return chats;
+      // Check if chat already exists
+      QuerySnapshot existingChats = await _firestore
+          .collection('chats')
+          .where('participant1', isEqualTo: participant1)
+          .where('participant2', isEqualTo: participant2)
+          .limit(1)
+          .get();
+
+      if (existingChats.docs.isNotEmpty) {
+        return existingChats.docs.first.id;
       }
-      return [];
+
+      // Create new chat if none exists
+      DocumentReference chatRef = await _firestore.collection('chats').add({
+        'participant1': participant1,
+        'participant2': participant2,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      return chatRef.id;
     } catch (e) {
-      print('Error fetching user chats: $e');
-      return [];
+      print('Error creating chat: $e');
+      return null;
     }
   }
 
@@ -115,6 +128,36 @@ class MessagingService {
     } catch (e) {
       print('Error getting paginated messages: $e');
       return [];
+    }
+  }
+
+  // Helper method to get the other participant's ID
+  String getOtherParticipantId(
+      Map<String, dynamic> chatData, String currentUserId) {
+    if (chatData['participant1'] == currentUserId) {
+      return chatData['participant2'];
+    }
+    return chatData['participant1'];
+  }
+
+  // Method to delete a chat
+  Future<void> deleteChat(String chatId) async {
+    try {
+      // Delete all messages in the chat
+      QuerySnapshot messages = await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .get();
+
+      for (var message in messages.docs) {
+        await message.reference.delete();
+      }
+
+      // Delete the chat document
+      await _firestore.collection('chats').doc(chatId).delete();
+    } catch (e) {
+      print('Error deleting chat: $e');
     }
   }
 }
