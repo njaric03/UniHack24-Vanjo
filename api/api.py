@@ -2,12 +2,15 @@ from flask import Flask, request, jsonify
 from knowledge_graph.UserGraph import UserGraph
 from io import BytesIO
 import base64
+import networkx as nx
 
 app = Flask(__name__)
 
 # Load your user graph data or initialize any resources once when the app starts
 user_graph = UserGraph.load_from_file('../resources/userbase/userbase_graph.pkl')
-
+user_graph.cycles += user_graph.pending_cycles
+user_graph.pending_cycles = []
+print(user_graph.graph.nodes['ioPyHMiyE9aUDRzdeQPCujEMM5X2'])
 
 @app.route('/find_cycle', methods=['POST'])
 def find_cycle():

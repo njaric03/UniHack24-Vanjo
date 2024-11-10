@@ -1,4 +1,5 @@
 from cProfile import label
+from itertools import cycle
 from typing import Any, Dict, Optional, List, Union
 import networkx as nx
 import pickle
@@ -10,6 +11,8 @@ from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import random
 from PIL import Image, ImageOps, ImageDraw
 from io import BytesIO
+
+from networkx.generators.classic import cycle_graph
 
 AVATARS_PATH = '../resources/avatars/'
 AVATAR_PATH_TEMPLATE = AVATARS_PATH + 'HEIF Image {}.jpeg'
@@ -128,7 +131,15 @@ class UserGraph:
             return None, None
 
         # Create the subgraph for the cycle
-        G = nx.subgraph(self.graph, best_cycle)
+        G = nx.subgraph(self.graph, best_cycle).copy()
+
+        cycle_edges = []
+        for i in range(len(best_cycle)):
+            u = best_cycle[i]
+            v = best_cycle[(i + 1) % len(best_cycle)]
+            cycle_edges.append((u, v))
+        not_in_cycle = [edge for edge in G.edges() if edge not in cycle_edges]
+        G.remove_edges_from(not_in_cycle)
 
         # Position the nodes using a layout
         pos = nx.spring_layout(G, pos=nx.planar_layout(G))
@@ -139,7 +150,7 @@ class UserGraph:
 
         fig_width = 17
         fig_height = 17
-        plt.figure(figsize=(fig_width, fig_width))
+        plt.figure(figsize=(fig_width, fig_height))
         node_labels = {node: f"{data['first_name']} {data['last_name']}" for node, data in G.nodes(data=True)}
         edge_labels = {(u, v): f"{node_labels[u]} \n {d['subject']} ({d['rating_avg_teacher']})"
                        for u, v, d in G.edges(data=True)}
@@ -165,6 +176,7 @@ class UserGraph:
                 min_target_margin=100,
                 connectionstyle=connection_style
             )
+            edge_labels_ = None
             edge_labels_ = {(source, target) : edge_labels[(source, target)]}
             nx.draw_networkx_edge_labels(
                 G, pos,
