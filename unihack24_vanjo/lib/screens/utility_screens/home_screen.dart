@@ -6,7 +6,6 @@ import 'package:unihack24_vanjo/models/user.dart';
 import 'package:unihack24_vanjo/screens/side_drawer_screens/profile_screen.dart';
 import 'package:unihack24_vanjo/theme/app_theme.dart';
 import 'package:unihack24_vanjo/widgets/side_drawer.dart';
-import '/screens/bottom_nav_bar_screens/alerts_screen.dart';
 import '/screens/bottom_nav_bar_screens/find_screen.dart';
 import '/screens/bottom_nav_bar_screens/all_chats_screen.dart';
 
@@ -70,19 +69,17 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final List<Widget> pages = [
       FindScreen(),
+      if (userID != null) AllChatsScreen(userId: userID!) else Container(),
       if (currentUser != null)
         ProfileScreen(user: currentUser!)
       else
         Container(),
-      if (userID != null) AllChatsScreen(userId: userID!) else Container(),
-      AlertsScreen()
     ];
 
     final List<String> titles = [
       'Find Matches',
       'Profile',
       'Messages',
-      'Alerts'
     ];
 
     return MaterialApp(
@@ -122,17 +119,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 label: 'Find',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.person),
-                label: 'Profile',
-              ),
-              BottomNavigationBarItem(
                 icon: Icon(Icons.message),
                 label: 'Messages',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.notifications),
-                label: 'Alerts',
-              ),
+                icon: Icon(Icons.person),
+                label: 'Profile',
+              )
             ],
             currentIndex: _selectedIndex,
             onTap: _onItemTapped,
