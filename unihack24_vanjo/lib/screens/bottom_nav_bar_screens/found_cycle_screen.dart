@@ -48,6 +48,41 @@ class _FoundCycleScreenState extends State<FoundCycleScreen> {
     }
   }
 
+  List<UserCard> _buildUserCards() {
+    if (_users == null) return [];
+    List<UserCard> userCards = [];
+    final currentUserIndex =
+        _users!.indexWhere((u) => u.id == widget.currentUserId);
+
+    if (_users!.length == 2) {
+      // 2 Users: [Teacher & Learner, User]
+      userCards
+          .add(UserCard(user: _users![0], role: UserRole.teacherAndLearner));
+      userCards.add(UserCard(user: _users![1], role: UserRole.user));
+    } else if (_users!.length == 3) {
+      // 3 Users: [Teacher, User, Learner]
+      final teacherIndex =
+          (currentUserIndex - 1 + _users!.length) % _users!.length;
+      final learnerIndex = (currentUserIndex + 1) % _users!.length;
+
+      userCards
+          .add(UserCard(user: _users![teacherIndex], role: UserRole.teacher));
+      userCards
+          .add(UserCard(user: _users![currentUserIndex], role: UserRole.user));
+      userCards
+          .add(UserCard(user: _users![learnerIndex], role: UserRole.learner));
+    } else {
+      // Default case for more than 3 users if needed
+      for (var user in _users!) {
+        UserRole role =
+            user.id == widget.currentUserId ? UserRole.user : UserRole.user;
+        userCards.add(UserCard(user: user, role: role));
+      }
+    }
+
+    return userCards;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,52 +124,7 @@ class _FoundCycleScreenState extends State<FoundCycleScreen> {
                 const SizedBox(height: 16),
                 Expanded(
                   child: _users != null
-                      ? ListView.builder(
-                          itemCount: _users!.length,
-                          itemBuilder: (context, index) {
-                            final user = _users![index];
-                            final currentUserIndex = _users!.indexWhere(
-                                (u) => u.id == widget.currentUserId);
-
-                            // Determine user role
-                            UserRole role;
-                            if (_users!.length == 2) {
-                              if (index == 0) {
-                                role = UserRole.teacherAndLearner;
-                              } else {
-                                role = UserRole.user;
-                              }
-                            } else if (_users!.length == 3) {
-                              if (index == currentUserIndex) {
-                                role = UserRole.user;
-                              } else if (index ==
-                                  (currentUserIndex - 1 + _users!.length) %
-                                      _users!.length) {
-                                role = UserRole.teacher;
-                              } else if (index ==
-                                  (currentUserIndex + 1) % _users!.length) {
-                                role = UserRole.learner;
-                              } else {
-                                role = UserRole.user;
-                              }
-                            } else {
-                              if (user.id == widget.currentUserId) {
-                                role = UserRole.user;
-                              } else if (index ==
-                                  (currentUserIndex - 1 + _users!.length) %
-                                      _users!.length) {
-                                role = UserRole.teacher;
-                              } else if (index ==
-                                  (currentUserIndex + 1) % _users!.length) {
-                                role = UserRole.learner;
-                              } else {
-                                role = UserRole.user;
-                              }
-                            }
-
-                            return UserCard(user: user, role: role);
-                          },
-                        )
+                      ? ListView(children: _buildUserCards())
                       : const Text('No users available'),
                 ),
                 Padding(
