@@ -1,3 +1,5 @@
+// api_service.dart
+
 // ignore_for_file: avoid_print
 
 import 'dart:convert';
@@ -15,6 +17,47 @@ class ApiService {
   String? _base64Image;
   List<SkillCycleUser>? _cachedUsers;
 
+  /// Registers a user with the API.
+  Future<bool> registerUserWithApi(SkillCycleUser user) async {
+    try {
+      final url = Uri.parse('$apiUrl/add_user');
+
+      final payload = {
+        "doc_id": user.id,
+        "attributes": {
+          "first_name": user.firstName,
+          "last_name": user.lastName,
+          "teaching_subject": user.teachingSubjects!.isNotEmpty
+              ? user.teachingSubjects!.first
+              : "",
+          "learning_subject": user.learningSubjects!.isNotEmpty
+              ? user.learningSubjects!.first
+              : "",
+          "rating_avg_teacher": user.ratingAvg,
+          "avatar_id": user.avatarId,
+        }
+      };
+
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+
+      if (response.statusCode == 200) {
+        print("API Success: ${response.body}");
+        return true;
+      } else {
+        print("API Error: ${response.statusCode} - ${response.body}");
+        return false;
+      }
+    } catch (e) {
+      print("API Exception: $e");
+      return false;
+    }
+  }
+
+  /// Fetches cycle data for a given user ID.
   Future<void> fetchCycleData(String userId) async {
     try {
       final response = await http.post(
@@ -37,12 +80,11 @@ class ApiService {
 
         if (responseData.containsKey('cycle_image')) {
           _base64Image = responseData['cycle_image'];
-          await saveImage(); // Save the image immediately
+          await saveImage();
         } else {
           print('No image found in response');
         }
 
-        // Fetch user details
         _cachedUsers = [];
         for (String userId in _cycleNodes) {
           SkillCycleUser? user = await SkillCycleUser.getUserById(userId);
@@ -64,6 +106,7 @@ class ApiService {
     }
   }
 
+  /// Returns the cached users.
   Future<List<SkillCycleUser>> getCachedUsers() async {
     if (_cachedUsers != null) {
       return _cachedUsers!;
@@ -71,10 +114,10 @@ class ApiService {
     throw Exception('No cached users available. Call fetchCycleData first.');
   }
 
+  /// Returns the local path for storing images.
   Future<String> get _localPath async {
     final directory = await getApplicationDocumentsDirectory();
     final path = directory.path;
-    // Create the graphs directory if it doesn't exist
     final graphsDir = Directory('$path/graphs');
     if (!await graphsDir.exists()) {
       await graphsDir.create(recursive: true);
@@ -82,11 +125,13 @@ class ApiService {
     return '$path/graphs';
   }
 
+  /// Returns the local file for storing the cycle image.
   Future<File> get _localFile async {
     final path = await _localPath;
     return File('$path/cycle_image.png');
   }
 
+  /// Saves the cycle image to local storage.
   Future<void> saveImage() async {
     if (_base64Image == null) {
       print('No image data to save');
@@ -115,6 +160,7 @@ class ApiService {
     }
   }
 
+  /// Loads the cycle image from local storage.
   Future<Uint8List?> loadImage() async {
     try {
       final file = await _localFile;

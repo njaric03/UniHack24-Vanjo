@@ -71,13 +71,18 @@ class _FoundCycleScreenState extends State<FoundCycleScreen> {
           .add(UserCard(user: _users![currentUserIndex], role: UserRole.user));
       userCards
           .add(UserCard(user: _users![learnerIndex], role: UserRole.learner));
-    } else {
-      // Default case for more than 3 users if needed
-      for (var user in _users!) {
-        UserRole role =
-            user.id == widget.currentUserId ? UserRole.user : UserRole.user;
-        userCards.add(UserCard(user: user, role: role));
-      }
+    } else if (_users!.length > 3) {
+      // More than 3 Users: Trim list to show Teacher, User, and Learner
+      final teacherIndex =
+          (currentUserIndex - 1 + _users!.length) % _users!.length;
+      final learnerIndex = (currentUserIndex + 1) % _users!.length;
+
+      userCards
+          .add(UserCard(user: _users![teacherIndex], role: UserRole.teacher));
+      userCards
+          .add(UserCard(user: _users![currentUserIndex], role: UserRole.user));
+      userCards
+          .add(UserCard(user: _users![learnerIndex], role: UserRole.learner));
     }
 
     return userCards;

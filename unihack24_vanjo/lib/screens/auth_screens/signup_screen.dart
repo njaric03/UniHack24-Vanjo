@@ -1,4 +1,6 @@
-// ignore_for_file: library_private_types_in_public_api
+// ignore_for_file: library_private_types_in_public_api, avoid_print
+
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -7,6 +9,7 @@ import 'package:unihack24_vanjo/models/user.dart';
 import 'package:unihack24_vanjo/screens/utility_screens/home_screen.dart';
 import '../../services/auth_service.dart';
 import 'signin_screen.dart';
+import 'package:http/http.dart' as http;
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -44,6 +47,45 @@ class _SignUpScreenState extends State<SignUpScreen> {
     });
   }
 
+  Future<bool> _sendUserDataToApi(String userId) async {
+    final url = Uri.parse('http://192.168.30.218:5000/add_user');
+
+    try {
+      final payload = {
+        "doc_id": userId, // Using Firebase UID as doc_id
+        "attributes": {
+          "first_name": _firstNameController.text.trim(),
+          "last_name": _lastNameController.text.trim(),
+          "teaching_subject": _selectedTeachingSubjects.isNotEmpty
+              ? _selectedTeachingSubjects.first
+              : "",
+          "learning_subject": _selectedLearningSubjects.isNotEmpty
+              ? _selectedLearningSubjects.first
+              : "",
+          "rating_avg_teacher": 0.0, // Initial rating for new user
+          "avatar_id": _selectedAvatarId ?? 1,
+        }
+      };
+
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+
+      if (response.statusCode == 200) {
+        print("API Success: ${response.body}");
+        return true;
+      } else {
+        print("API Error: ${response.statusCode} - ${response.body}");
+        return false;
+      }
+    } catch (e) {
+      print("API Exception: $e");
+      return false;
+    }
+  }
+
   Future<void> _signUp() async {
     setState(() {
       _isLoading = true;
@@ -54,12 +96,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final password = _passwordController.text.trim();
 
     try {
-      // Register the user with email and password
       final user = await _authService.registerWithEmail(
         email,
         password,
         SkillCycleUser(
-          id: '', // Temporary placeholder for id
+          id: '',
           email: email,
           firstName: _firstNameController.text.trim(),
           lastName: _lastNameController.text.trim(),
@@ -69,12 +110,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ratingAvg: 0.0,
           learningSubjects: _selectedLearningSubjects,
           teachingSubjects: _selectedTeachingSubjects,
-          avatarId: _selectedAvatarId ?? 1, // Default to 1 if not selected
+          avatarId: _selectedAvatarId ?? 1,
         ),
       );
 
       if (user != null) {
-        // Update the SkillCycleUser with the correct id
         final skillCycleUser = SkillCycleUser(
           id: user.uid,
           email: email,
@@ -86,13 +126,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ratingAvg: 0.0,
           learningSubjects: _selectedLearningSubjects,
           teachingSubjects: _selectedTeachingSubjects,
-          avatarId: _selectedAvatarId ?? 1, // Default to 1 if not selected
+          avatarId: _selectedAvatarId ?? 1,
         );
 
-        // Save the updated SkillCycleUser to Firestore
+        // Save to Firestore
         await _authService.updateUserProfile(skillCycleUser);
 
-        await _handleSuccessfulSignUp(user.uid);
+        // Send data to API
+        final apiSuccess = await _sendUserDataToApi(user.uid);
+
+        if (apiSuccess) {
+          await _handleSuccessfulSignUp(user.uid);
+        } else {
+          setState(() {
+            _errorMessage =
+                "Failed to register with the service. Please try again.";
+          });
+        }
       }
     } catch (e) {
       setState(() {
