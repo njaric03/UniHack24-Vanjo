@@ -2,7 +2,7 @@
 // ignore_for_file: library_private_types_in_public_api, avoid_print
 
 import 'package:flutter/material.dart';
-import 'package:unihack24_vanjo/models/user.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:unihack24_vanjo/models/cycle.dart';
 import 'found_cycle_screen.dart';
 
@@ -16,6 +16,20 @@ class FindScreen extends StatefulWidget {
 class _FindScreenState extends State<FindScreen> {
   final List<String> _matches = [];
   bool _isLoading = false;
+  String? _currentUserId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentUserId();
+  }
+
+  Future<void> _loadCurrentUserId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _currentUserId = prefs.getString('userID');
+    });
+  }
 
   void _findMatches() async {
     setState(() {
@@ -25,44 +39,10 @@ class _FindScreenState extends State<FindScreen> {
     // Simulate a network call to find matches
     await Future.delayed(Duration(seconds: 2));
 
-    // Example users and cycle
-    List<SkillCycleUser> users = [
-      SkillCycleUser(
-        email: 'user1@example.com',
-        firstName: 'John',
-        lastName: 'Doe',
-        username: 'johndoe',
-        credits: 0,
-        hoursTeaching: 0,
-        ratingAvg: 0.0,
-        avatarId: 1,
-      ),
-      SkillCycleUser(
-        email: 'user2@example.com',
-        firstName: 'Jane',
-        lastName: 'Smith',
-        username: 'janesmith',
-        credits: 0,
-        hoursTeaching: 0,
-        ratingAvg: 0.0,
-        avatarId: 2,
-      ),
-      SkillCycleUser(
-        email: 'user3@example.com',
-        firstName: 'Alice',
-        lastName: 'Johnson',
-        username: 'alicejohnson',
-        credits: 0,
-        hoursTeaching: 0,
-        ratingAvg: 0.0,
-        avatarId: 3,
-      ),
-    ];
-
     Cycle cycle = Cycle.fromList([
-      'user1@example.com',
-      'user2@example.com',
-      'user3@example.com',
+      '1',
+      '2',
+      '3',
     ]);
 
     setState(() {
@@ -74,9 +54,8 @@ class _FindScreenState extends State<FindScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => FoundCycleScreen(
-          users: users,
           cycle: cycle,
-          currentUserEmail: 'user2@example.com',
+          currentUserId: _currentUserId!,
           onAccept: () {
             // Handle accept action
             print('Cycle accepted');
@@ -119,7 +98,8 @@ class _FindScreenState extends State<FindScreen> {
                   ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _isLoading ? null : _findMatches,
+              onPressed:
+                  _isLoading || _currentUserId == null ? null : _findMatches,
               child: _isLoading
                   ? CircularProgressIndicator(
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),

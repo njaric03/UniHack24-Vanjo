@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:unihack24_vanjo/models/user.dart';
 import 'package:unihack24_vanjo/theme/app_theme.dart';
 
+import '../models/user.dart';
+
 enum UserRole {
-  current,
+  user,
   teacher,
   learner,
-  network;
+  teacherAndLearner;
 
   Color get cardColor {
     switch (this) {
       case UserRole.teacher:
         return AppTheme.teacherColor.withOpacity(0.2);
       case UserRole.learner:
+        return AppTheme.learnerColor.withOpacity(0.2);
+      case UserRole.teacherAndLearner:
         return AppTheme.learnerColor.withOpacity(0.2);
       default:
         return AppTheme.networkColor.withOpacity(0.2);
@@ -25,6 +28,8 @@ enum UserRole {
         return AppTheme.teacherColor;
       case UserRole.learner:
         return AppTheme.learnerColor;
+      case UserRole.teacherAndLearner:
+        return AppTheme.learnerColor;
       default:
         return AppTheme.primaryColor;
     }
@@ -35,6 +40,8 @@ enum UserRole {
       case UserRole.teacher:
         return AppTheme.teacherColor;
       case UserRole.learner:
+        return AppTheme.learnerColor;
+      case UserRole.teacherAndLearner:
         return AppTheme.learnerColor;
       default:
         return AppTheme.textColor;
@@ -47,10 +54,10 @@ enum UserRole {
         return 'Teaching you';
       case UserRole.learner:
         return 'Learning from you';
-      case UserRole.current:
-        return 'You';
+      case UserRole.teacherAndLearner:
+        return 'Teaching and Learning';
       default:
-        return 'Network member';
+        return 'You';
     }
   }
 
@@ -60,10 +67,10 @@ enum UserRole {
         return const Icon(Icons.school, color: AppTheme.teacherColor);
       case UserRole.learner:
         return const Icon(Icons.book, color: AppTheme.learnerColor);
-      case UserRole.current:
-        return Icon(Icons.person, color: AppTheme.networkColor);
+      case UserRole.teacherAndLearner:
+        return const Icon(Icons.swap_horiz, color: AppTheme.learnerColor);
       default:
-        return Icon(Icons.person_outline, color: AppTheme.networkColor);
+        return Icon(Icons.person, color: AppTheme.networkColor);
     }
   }
 }

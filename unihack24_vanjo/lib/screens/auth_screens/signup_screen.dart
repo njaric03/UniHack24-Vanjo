@@ -52,25 +52,42 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final password = _passwordController.text.trim();
 
     try {
-      final skillCycleUser = SkillCycleUser(
-        email: email,
-        firstName: _firstNameController.text.trim(),
-        lastName: _lastNameController.text.trim(),
-        username: _usernameController.text.trim(),
-        credits: 0,
-        hoursTeaching: 0,
-        ratingAvg: 0.0,
-        learningSubjects: _selectedLearningSubjects,
-        teachingSubjects: _selectedTeachingSubjects,
-      );
-
+      // Register the user with email and password
       final user = await _authService.registerWithEmail(
         email,
         password,
-        skillCycleUser,
+        SkillCycleUser(
+          id: '', // Temporary placeholder for id
+          email: email,
+          firstName: _firstNameController.text.trim(),
+          lastName: _lastNameController.text.trim(),
+          username: _usernameController.text.trim(),
+          credits: 0,
+          hoursTeaching: 0,
+          ratingAvg: 0.0,
+          learningSubjects: _selectedLearningSubjects,
+          teachingSubjects: _selectedTeachingSubjects,
+        ),
       );
 
       if (user != null) {
+        // Update the SkillCycleUser with the correct id
+        final skillCycleUser = SkillCycleUser(
+          id: user.uid,
+          email: email,
+          firstName: _firstNameController.text.trim(),
+          lastName: _lastNameController.text.trim(),
+          username: _usernameController.text.trim(),
+          credits: 0,
+          hoursTeaching: 0,
+          ratingAvg: 0.0,
+          learningSubjects: _selectedLearningSubjects,
+          teachingSubjects: _selectedTeachingSubjects,
+        );
+
+        // Save the updated SkillCycleUser to Firestore
+        await _authService.updateUserProfile(skillCycleUser);
+
         await _handleSuccessfulSignUp(user.uid);
       }
     } catch (e) {

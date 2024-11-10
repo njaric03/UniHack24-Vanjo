@@ -6,17 +6,15 @@ import '../../models/user.dart';
 import '../../widgets/user_card_widget.dart';
 
 class FoundCycleScreen extends StatefulWidget {
-  final List<SkillCycleUser> users;
   final Cycle cycle;
-  final String currentUserEmail;
+  final String currentUserId;
   final VoidCallback onAccept;
   final VoidCallback onFindOther;
 
   const FoundCycleScreen({
     super.key,
-    required this.users,
     required this.cycle,
-    required this.currentUserEmail,
+    required this.currentUserId,
     required this.onAccept,
     required this.onFindOther,
   });
@@ -26,123 +24,155 @@ class FoundCycleScreen extends StatefulWidget {
 }
 
 class _FoundCycleScreenState extends State<FoundCycleScreen> {
-  Future<Uint8List?>? _imageBytes;
   final ApiService _apiService = ApiService();
+  Future<void>? _initializationFuture;
+  Uint8List? _imageBytes;
+  List<SkillCycleUser>? _users;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _fetchAndDisplayImage();
+    _initializationFuture = _initializeData();
   }
 
-  Future<void> _fetchAndDisplayImage() async {
-    await _apiService.fetchAndSaveImage(widget.currentUserEmail);
-    setState(() {
-      _imageBytes = _apiService.loadImage();
-    });
+  Future<void> _initializeData() async {
+    try {
+      await _apiService.fetchCycleData(widget.currentUserId);
+      _imageBytes = await _apiService.loadImage();
+      _users = await _apiService.getCachedUsers();
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Failed to initialize data: $e';
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    int currentUserIndex =
-        widget.cycle.userIds.indexOf(widget.currentUserEmail);
+    int currentUserIndex = widget.cycle.userIds.indexOf(widget.currentUserId);
 
     return Scaffold(
       appBar: AppBar(
         title: Text('Found Skill Cycle', style: TextStyle(color: Colors.black)),
-        backgroundColor: Colors.white,
-        elevation: 1,
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Center(
-              // Display the decoded image or a loading indicator
-              child: FutureBuilder<Uint8List?>(
-                future: _imageBytes,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const CircularProgressIndicator();
-                  } else if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  } else if (snapshot.hasData && snapshot.data != null) {
-                    return Image.memory(
-                      snapshot.data!,
-                      height: 300, // Enlarged image height
-                      width: 300, // Enlarged image width
-                    );
-                  } else {
-                    return const Text('No image available');
-                  }
-                },
+      body: FutureBuilder<void>(
+        future: _initializationFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                'Error: ${snapshot.error}',
+                style: TextStyle(color: Colors.red),
               ),
-            ),
-          ),
-          const SizedBox(
-              height: 16), // Increased padding between image and first UserCard
-          Expanded(
-            child: ListView.builder(
-              itemCount: widget.users.length,
-              itemBuilder: (context, index) {
-                final user = widget.users[index];
-
-                // Determine user role
-                UserRole role;
-                if (user.email == widget.currentUserEmail) {
-                  role = UserRole.current;
-                } else if (index ==
-                    (currentUserIndex - 1 + widget.users.length) %
-                        widget.users.length) {
-                  role = UserRole.teacher;
-                } else if (index ==
-                    (currentUserIndex + 1) % widget.users.length) {
-                  role = UserRole.learner;
-                } else {
-                  role = UserRole.network;
-                }
-
-                return UserCard(user: user, role: role);
-              },
-            ),
-          ),
-          // Action Buttons
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            );
+          } else {
+            return Column(
               children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: widget.onAccept,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColor,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24.0, vertical: 12.0),
-                    ),
-                    child: const Text('Accept',
-                        style: TextStyle(fontSize: 16, color: Colors.white)),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Center(
+                    child: _errorMessage != null
+                        ? Text(
+                            _errorMessage!,
+                            style: TextStyle(color: Colors.red),
+                          )
+                        : _imageBytes != null
+                            ? Image.memory(
+                                _imageBytes!,
+                                height: 300,
+                                width: 300,
+                              )
+                            : const Text('No image available'),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(height: 16),
                 Expanded(
-                  child: OutlinedButton(
-                    onPressed: widget.onFindOther,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Theme.of(context).primaryColor,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24.0, vertical: 12.0),
-                      side: BorderSide(
-                          color: Theme.of(context).primaryColor, width: 2),
-                    ),
-                    child: const Text('Find Other',
-                        style: TextStyle(fontSize: 16)),
+                  child: _users != null
+                      ? ListView.builder(
+                          itemCount: _users!.length,
+                          itemBuilder: (context, index) {
+                            final user = _users![index];
+
+                            // Determine user role
+                            UserRole role;
+                            if (_users!.length == 2) {
+                              if (index == 0) {
+                                role = UserRole.teacherAndLearner;
+                              } else {
+                                role = UserRole.user;
+                              }
+                            } else if (_users!.length == 3) {
+                              if (index == 1) {
+                                role = UserRole.user;
+                              } else if (index == 0) {
+                                role = UserRole.teacher;
+                              } else {
+                                role = UserRole.learner;
+                              }
+                            } else {
+                              if (user.id == widget.currentUserId) {
+                                role = UserRole.user;
+                              } else if (index ==
+                                  (currentUserIndex - 1 + _users!.length) %
+                                      _users!.length) {
+                                role = UserRole.teacher;
+                              } else if (index ==
+                                  (currentUserIndex + 1) % _users!.length) {
+                                role = UserRole.learner;
+                              } else {
+                                role = UserRole.user;
+                              }
+                            }
+
+                            return UserCard(user: user, role: role);
+                          },
+                        )
+                      : const Text('No users available'),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: widget.onAccept,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).primaryColor,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24.0, vertical: 12.0),
+                          ),
+                          child: const Text('Accept',
+                              style:
+                                  TextStyle(fontSize: 16, color: Colors.white)),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: widget.onFindOther,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Theme.of(context).primaryColor,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24.0, vertical: 12.0),
+                            side: BorderSide(
+                                color: Theme.of(context).primaryColor,
+                                width: 2),
+                          ),
+                          child: const Text('Find Other',
+                              style: TextStyle(fontSize: 16)),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
-            ),
-          ),
-        ],
+            );
+          }
+        },
       ),
     );
   }

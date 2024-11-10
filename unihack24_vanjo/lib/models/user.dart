@@ -15,8 +15,10 @@ class SkillCycleUser {
   List<String>? learningSubjects;
   List<String>? teachingSubjects;
   List<Review>? reviews;
+  final String id;
 
   SkillCycleUser({
+    required this.id,
     this.email,
     this.firstName,
     this.lastName,
@@ -59,7 +61,9 @@ class SkillCycleUser {
     return reviews;
   }
 
-  static Future<SkillCycleUser> fromMap(Map<String, dynamic> map) async {
+  static Future<SkillCycleUser> fromDocument(DocumentSnapshot doc) async {
+    final map = doc.data() as Map<String, dynamic>;
+
     List<String> extractReferenceIds(dynamic field) {
       if (field is List) {
         return field
@@ -76,6 +80,7 @@ class SkillCycleUser {
     }
 
     return SkillCycleUser(
+      id: doc.id,
       email: map['email'],
       firstName: map['first_name'],
       lastName: map['last_name'],
@@ -98,7 +103,7 @@ class SkillCycleUser {
           .get();
 
       if (doc.exists) {
-        return await SkillCycleUser.fromMap(doc.data() as Map<String, dynamic>);
+        return await SkillCycleUser.fromDocument(doc);
       } else {
         print('User not found');
         return null;

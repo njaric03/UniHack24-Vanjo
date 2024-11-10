@@ -64,7 +64,7 @@ class AuthService {
     try {
       DocumentSnapshot doc =
           await _firestore.collection('users').doc(uid).get();
-      return SkillCycleUser.fromMap(doc.data() as Map<String, dynamic>);
+      return await SkillCycleUser.fromDocument(doc);
     } catch (e) {
       print("Error fetching user profile: $e");
       return null;
@@ -102,6 +102,7 @@ class AuthService {
           String lastName = nameParts.length > 1 ? nameParts.last : '';
 
           final newUser = SkillCycleUser(
+            id: user.uid,
             email: user.email,
             firstName: firstName,
             lastName: lastName,
@@ -132,6 +133,14 @@ class AuthService {
     } catch (e) {
       print('Error fetching classes: $e');
       return [];
+    }
+  }
+
+  Future<void> updateUserProfile(SkillCycleUser user) async {
+    try {
+      await _firestore.collection('users').doc(user.id).set(user.toMap());
+    } catch (e) {
+      print("Error updating user profile: $e");
     }
   }
 }
