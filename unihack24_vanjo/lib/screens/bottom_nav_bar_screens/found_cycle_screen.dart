@@ -1,9 +1,14 @@
+// found_cycle_screen.dart
+
+// ignore_for_file: unused_element, unused_local_variable
+
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:unihack24_vanjo/services/api_service.dart';
 import '../../models/cycle.dart';
 import '../../models/user.dart';
 import '../../widgets/user_card_widget.dart';
+import 'package:unihack24_vanjo/services/firebase_services.dart';
 
 class FoundCycleScreen extends StatefulWidget {
   final Cycle cycle;
@@ -25,6 +30,7 @@ class FoundCycleScreen extends StatefulWidget {
 
 class _FoundCycleScreenState extends State<FoundCycleScreen> {
   final ApiService _apiService = ApiService();
+  final FirebaseService _firebaseService = FirebaseService();
   Future<void>? _initializationFuture;
   Uint8List? _imageBytes;
   List<SkillCycleUser>? _users;
@@ -88,6 +94,29 @@ class _FoundCycleScreenState extends State<FoundCycleScreen> {
     return userCards;
   }
 
+  /// Handles the 'Accept' action by sending cycle data to Firebase.
+  void _handleAccept() async {
+    // Create a new Cycle object with the required data
+    Cycle newCycle = Cycle(
+      userIds: widget.cycle.userIds,
+      createdAt: DateTime.now(),
+      status: 'pending',
+    );
+
+    try {
+      // Add the cycle to Firebase
+      await _firebaseService.addCycle(newCycle);
+      widget.onAccept();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Cycle accepted and saved to Firebase')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to accept cycle: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -99,10 +128,10 @@ class _FoundCycleScreenState extends State<FoundCycleScreen> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
+          } else if (snapshot.hasError || _errorMessage != null) {
             return Center(
               child: Text(
-                'Error: ${snapshot.error}',
+                'Error: ${snapshot.error ?? _errorMessage}',
                 style: TextStyle(color: Colors.red),
               ),
             );
@@ -115,54 +144,20 @@ class _FoundCycleScreenState extends State<FoundCycleScreen> {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Center(
-                    child: _errorMessage != null
-                        ? Text(
-                            _errorMessage!,
-                            style: TextStyle(color: Colors.red),
+                    child: _imageBytes != null
+                        ? Image.memory(
+                            _imageBytes!,
+                            height: 300,
+                            width: 300,
                           )
-                        : _imageBytes != null
-                            ? Image.memory(
-                                _imageBytes!,
-                                height: 300,
-                                width: 300,
-                              )
-                            : const Text('No image available'),
+                        : const Text('No image available'),
                   ),
                 ),
                 const SizedBox(height: 16),
                 Expanded(
                   child: _users != null
-                      ? ListView.builder(
-                          itemCount: _users!.length > 3 ? 3 : _users!.length,
-                          itemBuilder: (context, index) {
-                            final userIndex = index == 0
-                                ? (currentUserIndex - 1 + _users!.length) %
-                                    _users!.length
-                                : index == 1
-                                    ? currentUserIndex
-                                    : (currentUserIndex + 1) % _users!.length;
-                            final user = _users![userIndex];
-
-                            // Determine user role
-                            UserRole role;
-                            if (_users!.length == 2) {
-                              if (index == 0) {
-                                role = UserRole.teacherAndLearner;
-                              } else {
-                                role = UserRole.user;
-                              }
-                            } else {
-                              if (index == 0) {
-                                role = UserRole.teacher;
-                              } else if (index == 1) {
-                                role = UserRole.user;
-                              } else {
-                                role = UserRole.learner;
-                              }
-                            }
-
-                            return UserCard(user: user, role: role);
-                          },
+                      ? ListView(
+                          children: _buildUserCards(),
                         )
                       : const Text('No users available'),
                 ),
@@ -173,7 +168,7 @@ class _FoundCycleScreenState extends State<FoundCycleScreen> {
                     children: [
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: widget.onAccept,
+                          onPressed: _handleAccept,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Theme.of(context).primaryColor,
                             padding: const EdgeInsets.symmetric(

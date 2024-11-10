@@ -30,7 +30,7 @@ class WelcomeScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Text(
-                  'Knowledge is an innovative platform that connects learners and teachers. Join us to enhance your skills and share your knowledge with others.',
+                  'KnowledgeCycle is an innovative platform that connects learners and teachers. Join us to enhance your skills and share your knowledge with others.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 16),
                 ),
