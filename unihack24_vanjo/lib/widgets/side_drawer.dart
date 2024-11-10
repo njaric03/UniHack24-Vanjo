@@ -24,8 +24,6 @@ class SideDrawer extends StatefulWidget {
 }
 
 class _SideDrawerState extends State<SideDrawer> {
-  bool _isDarkMode = false;
-
   @override
   void initState() {
     super.initState();
@@ -33,19 +31,7 @@ class _SideDrawerState extends State<SideDrawer> {
   }
 
   Future<void> _loadThemePreference() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _isDarkMode = prefs.getBool('isDarkMode') ?? false;
-    });
-  }
-
-  Future<void> _toggleDarkMode(bool value) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _isDarkMode = value;
-      prefs.setBool('isDarkMode', value);
-    });
-    widget.onThemeChanged();
+    setState(() {});
   }
 
   Future<void> _logout(BuildContext context) async {
@@ -118,12 +104,6 @@ class _SideDrawerState extends State<SideDrawer> {
                     onTap: () {
                       Navigator.pop(context);
                     },
-                  ),
-                  SwitchListTile(
-                    title: Text('Dark Mode', style: AppTheme.bodyText1),
-                    value: _isDarkMode,
-                    onChanged: _toggleDarkMode,
-                    secondary: Icon(Icons.brightness_6),
                   ),
                   Spacer(),
                   Padding(

@@ -28,6 +28,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   List<String> _selectedLearningSubjects = [];
   List<String> _selectedTeachingSubjects = [];
   List<String> _subjectOptions = [];
+  int? _selectedAvatarId;
+  final List<int> _avatarIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
   @override
   void initState() {
@@ -67,6 +69,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ratingAvg: 0.0,
           learningSubjects: _selectedLearningSubjects,
           teachingSubjects: _selectedTeachingSubjects,
+          avatarId: _selectedAvatarId ?? 1, // Default to 1 if not selected
         ),
       );
 
@@ -83,6 +86,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ratingAvg: 0.0,
           learningSubjects: _selectedLearningSubjects,
           teachingSubjects: _selectedTeachingSubjects,
+          avatarId: _selectedAvatarId ?? 1, // Default to 1 if not selected
         );
 
         // Save the updated SkillCycleUser to Firestore
@@ -161,6 +165,38 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
+  Widget _buildAvatarSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Select Avatar'),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Wrap(
+            spacing: 8.0,
+            children: _avatarIds.map((avatarId) {
+              final isSelected = _selectedAvatarId == avatarId;
+              return ChoiceChip(
+                label: CircleAvatar(
+                  backgroundImage: AssetImage(
+                      'assets/avatars/avatari/HEIF Image $avatarId.jpeg'),
+                  radius: 20,
+                ),
+                selected: isSelected,
+                selectedColor: Theme.of(context).primaryColor,
+                onSelected: (selected) {
+                  setState(() {
+                    _selectedAvatarId = selected ? avatarId : null;
+                  });
+                },
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -218,6 +254,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
               onChanged: (subjects) =>
                   setState(() => _selectedTeachingSubjects = subjects),
             ),
+            SizedBox(height: 24),
+            _buildAvatarSelector(),
             SizedBox(height: 24),
             _isLoading
                 ? CircularProgressIndicator()
