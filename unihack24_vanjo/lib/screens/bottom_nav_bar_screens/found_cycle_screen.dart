@@ -50,8 +50,6 @@ class _FoundCycleScreenState extends State<FoundCycleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    int currentUserIndex = widget.cycle.userIds.indexOf(widget.currentUserId);
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Found Skill Cycle', style: TextStyle(color: Colors.black)),
@@ -95,6 +93,8 @@ class _FoundCycleScreenState extends State<FoundCycleScreen> {
                           itemCount: _users!.length,
                           itemBuilder: (context, index) {
                             final user = _users![index];
+                            final currentUserIndex = _users!.indexWhere(
+                                (u) => u.id == widget.currentUserId);
 
                             // Determine user role
                             UserRole role;
@@ -105,12 +105,17 @@ class _FoundCycleScreenState extends State<FoundCycleScreen> {
                                 role = UserRole.user;
                               }
                             } else if (_users!.length == 3) {
-                              if (index == 1) {
+                              if (index == currentUserIndex) {
                                 role = UserRole.user;
-                              } else if (index == 0) {
+                              } else if (index ==
+                                  (currentUserIndex - 1 + _users!.length) %
+                                      _users!.length) {
                                 role = UserRole.teacher;
-                              } else {
+                              } else if (index ==
+                                  (currentUserIndex + 1) % _users!.length) {
                                 role = UserRole.learner;
+                              } else {
+                                role = UserRole.user;
                               }
                             } else {
                               if (user.id == widget.currentUserId) {
