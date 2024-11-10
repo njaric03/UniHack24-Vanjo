@@ -23,14 +23,14 @@ class WelcomeScreen extends StatelessWidget {
               ),
               SizedBox(height: 20),
               Text(
-                'Welcome to SkillCycle!',
+                'Welcome to KnowledgeCycle!',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 10),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Text(
-                  'SkillCycle is an innovative platform that connects learners and teachers. Join us to enhance your skills and share your knowledge with others.',
+                  'Knowledge is an innovative platform that connects learners and teachers. Join us to enhance your skills and share your knowledge with others.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 16),
                 ),
