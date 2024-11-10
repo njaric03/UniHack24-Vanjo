@@ -112,7 +112,7 @@ class _FindScreenState extends State<FindScreen> {
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return Center(
               child: Text(
-                'No cycles found for now ☹',
+                'No cycles found for now.',
                 textAlign: TextAlign.center,
               ),
             );
