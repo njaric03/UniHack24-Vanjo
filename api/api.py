@@ -33,6 +33,38 @@ def find_cycle():
         "cycle_image": cycle_image_base64
     })
 
+@app.route('/add_user', methods=['POST'])
+def add_user():
+    data = request.json
+    doc_id = data.get('doc_id')
+    attributes = data.get('attributes')
+
+    if not doc_id or not attributes:
+        return jsonify({"error": "doc_id and attributes are required"}), 400
+    try:
+        user_graph.add_user(doc_id, attributes)
+        print(doc_id in user_graph.graph.nodes)
+        return jsonify({"message": "User added successfully", "doc_id": doc_id}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/delete_user', methods=['POST'])
+def delete_user():
+    data = request.json
+    doc_id = data.get('doc_id')
+
+    if not doc_id:
+        return jsonify({"error": "doc_id is required"}), 400
+
+    # Remove the user from the graph
+    removed = user_graph.remove_user(doc_id)
+
+    if removed:
+        return jsonify({"status": "User deleted successfully", "doc_id": doc_id}), 200
+    else:
+        return jsonify({"error": "User not found"}), 404
 
 if __name__ == '__main__':
+    print(user_graph.graph.nodes(data = True)['FX5pjNkaiobajpRTuNBfTkx4JWx1'])
     app.run(debug=True, host='0.0.0.0', port=5000)

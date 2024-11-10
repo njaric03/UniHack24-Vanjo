@@ -1,3 +1,4 @@
+from cProfile import label
 from typing import Any, Dict, Optional, List, Union
 import networkx as nx
 import pickle
@@ -51,6 +52,8 @@ class UserGraph:
         nx.set_node_attributes(G, users_df.set_index('user_id')['teaching_subject'].to_dict(), 'teaching_subject')
         nx.set_node_attributes(G, users_df.set_index('user_id')['learning_subject'].to_dict(), 'learning_subject')
         nx.set_node_attributes(G, users_df.set_index('user_id')['avatar_id'].to_dict(), 'avatar_id')
+        nx.set_node_attributes(G, users_df.set_index('user_id')['first_name'].to_dict(), 'first_name')
+        nx.set_node_attributes(G, users_df.set_index('user_id')['last_name'].to_dict(), 'last_name')
 
         self.graph = G
         self.cycles = list(nx.simple_cycles(G, length_bound=5))
@@ -130,14 +133,15 @@ class UserGraph:
         # Position the nodes using a layout
         pos = nx.spring_layout(G, pos=nx.planar_layout(G))
 
-        # Prepare colors for each teaching subject
         teaching_subjects = set(nx.get_node_attributes(G, 'teaching_subject').values())
         avatar_ids = {x: data['avatar_id'] - 1 for x, data in G.nodes(data=True)}
         color_map = {subject: f'#{random.randint(0, 0xFFFFFF):06x}' for subject in teaching_subjects}
 
-        # Create the plot
-        plt.figure(figsize=(17, 17))
-        edge_labels = {(u, v): f"{d['subject']} ({d['rating_avg_teacher']})"
+        fig_width = 17
+        fig_height = 17
+        plt.figure(figsize=(fig_width, fig_width))
+        node_labels = {node: f"{data['first_name']} {data['last_name']}" for node, data in G.nodes(data=True)}
+        edge_labels = {(u, v): f"{node_labels[u]} \n {d['subject']} ({d['rating_avg_teacher']})"
                        for u, v, d in G.edges(data=True)}
 
         nx.draw(
@@ -148,7 +152,7 @@ class UserGraph:
         for edge in G.edges():
             source, target = edge
             arrowstyle = '-|>'  # Arrow shape
-            arrowsize = 30  # Arrow length
+            arrowsize = 100  # Arrow length
             start_subject = G.nodes[source]['teaching_subject']
             edge_color = color_map[start_subject]  # Color based on start node's teaching subject
 
@@ -161,12 +165,14 @@ class UserGraph:
                 min_target_margin=100,
                 connectionstyle=connection_style
             )
+            edge_labels_ = {(source, target) : edge_labels[(source, target)]}
             nx.draw_networkx_edge_labels(
                 G, pos,
-                edge_labels=edge_labels,
+                edge_labels=edge_labels_,
                 connectionstyle=connection_style,
                 font_family='monospace',
-                font_size=40
+                font_color=edge_color,
+                font_size=30
             )
 
         # Add avatar images at each node position
@@ -181,9 +187,8 @@ class UserGraph:
         image_io = BytesIO()
         plt.savefig(image_io, format='PNG', transparent=True)
         image_io.seek(0)  # Reset pointer to start of stream
-
-        plt.axis('off')
         plt.show()
+        plt.axis('off')
         plt.close()
 
         # Return the cycle nodes and the image as bytes
