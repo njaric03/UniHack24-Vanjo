@@ -107,7 +107,8 @@ class _FoundCycleScreenState extends State<FoundCycleScreen> {
               ),
             );
           } else {
-            final currentUserIndex = _users!.indexWhere((u) => u.id == widget.currentUserId);
+            final currentUserIndex =
+                _users!.indexWhere((u) => u.id == widget.currentUserId);
 
             return Column(
               children: [
@@ -135,7 +136,8 @@ class _FoundCycleScreenState extends State<FoundCycleScreen> {
                           itemCount: _users!.length > 3 ? 3 : _users!.length,
                           itemBuilder: (context, index) {
                             final userIndex = index == 0
-                                ? (currentUserIndex - 1 + _users!.length) % _users!.length
+                                ? (currentUserIndex - 1 + _users!.length) %
+                                    _users!.length
                                 : index == 1
                                     ? currentUserIndex
                                     : (currentUserIndex + 1) % _users!.length;
@@ -178,7 +180,8 @@ class _FoundCycleScreenState extends State<FoundCycleScreen> {
                                 horizontal: 24.0, vertical: 12.0),
                           ),
                           child: const Text('Accept',
-                              style: TextStyle(fontSize: 16, color: Colors.white)),
+                              style:
+                                  TextStyle(fontSize: 16, color: Colors.white)),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -190,7 +193,8 @@ class _FoundCycleScreenState extends State<FoundCycleScreen> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 24.0, vertical: 12.0),
                             side: BorderSide(
-                                color: Theme.of(context).primaryColor, width: 2),
+                                color: Theme.of(context).primaryColor,
+                                width: 2),
                           ),
                           child: const Text('Find Other',
                               style: TextStyle(fontSize: 16)),
